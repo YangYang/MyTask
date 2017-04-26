@@ -1,4 +1,4 @@
-package com.imudges.mytask.mytask;
+package com.imudges.mytask.UI;
 
 import android.app.Application;
 import org.xutils.x;
