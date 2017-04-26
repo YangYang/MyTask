@@ -12,13 +12,16 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             android:name="com.imudges.mytask.UI.MyApplication">
-        <activity android:name=".UI.MainActivity">
+        <activity android:name=".UI.WelcomeActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
-
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <activity android:name=".UI.MainActivity">
+
+        </activity>
+        <activity android:name=".UI.LoginActivity"></activity>
     </application>
 
 </manifest>
