@@ -24,8 +24,6 @@ public class WelcomeActivity extends Activity{
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_welcome);
         handler.sendEmptyMessageDelayed(0,3000);
-        String sn = Toolkit.getSn();
-        System.err.println(Toolkit.getSn());
 
     }
 
