@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+import com.imudges.mytask.R;
 import es.dmoral.toasty.Toasty;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
