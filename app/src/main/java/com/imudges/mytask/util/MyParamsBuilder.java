@@ -13,8 +13,11 @@ public class MyParamsBuilder {
     private boolean  isGet;
 
     public MyParamsBuilder(String detailUrl,boolean isGet){
+        if (detailUrl.length() > 0 && detailUrl.charAt(0) == '/' ){
+            detailUrl = detailUrl.substring(1, detailUrl.length());
+        }
         if (params == null){
-             params = new RequestParams(detailUrl);
+             params = new RequestParams(Config.BASE_URL + detailUrl);
         }
         this.isGet = isGet;
     }
@@ -32,7 +35,7 @@ public class MyParamsBuilder {
         return this;
     }
 
-    private RequestParams builder(){
+    public RequestParams builder(){
         long ts = System.currentTimeMillis();
         if (isGet){
             params.addQueryStringParameter("ts",ts + "");

@@ -6,12 +6,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import com.imudges.mytask.R;
+import com.imudges.mytask.util.MyParamsBuilder;
 import es.dmoral.toasty.Toasty;
+import org.xutils.common.Callback;
 import org.xutils.http.RequestParams;
-import org.xutils.http.app.ParamsBuilder;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
+import org.xutils.x;
 
 /**
  * Created by HUPENG on 2017/4/26.
@@ -39,7 +41,32 @@ public class LoginActivity extends BaseActivity {
         //获取输入的用户名与密码
         String username = etUsername.getText().toString();
         String password = etPassword.getText().toString();
-        //
+        //创建请求参数对象
+        RequestParams params = new MyParamsBuilder("public/login.html",true)
+                .addParameter("username",username)
+                .addParameter("password",password)
+                .builder();
+        x.http().get(params, new Callback.CommonCallback<String>() {
+            @Override
+            public void onSuccess(String s) {
+                Toasty.info(LoginActivity.this, s,Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onError(Throwable throwable, boolean b) {
+
+            }
+
+            @Override
+            public void onCancelled(CancelledException e) {
+
+            }
+
+            @Override
+            public void onFinished() {
+
+            }
+        });
 
     }
 
