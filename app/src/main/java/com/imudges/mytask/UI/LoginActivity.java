@@ -62,6 +62,7 @@ public class LoginActivity extends BaseActivity {
 
             }
 
+            // 不管成功或者失败最后都会回调该接口
             @Override
             public void onFinished() {
 

@@ -46,4 +46,8 @@ public class MD5 {
 	public static String encryptTimeStamp(long ts){
 		return getMd5(getMd5(ts + "")+"&"+salt);
 	}
+
+	public static String encryptTimeStamp(String ts){
+		return getMd5(getMd5(ts )+"&"+salt);
+	}
 }
