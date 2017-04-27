@@ -9,5 +9,5 @@ public class Config {
     /***/
     public static final String REQUEST_SALT = "ANOplY7z8Ylut9M9vI3r_fu92haaTtlL";
 
-    public static final String PASSWORD_KEY = "ANOplY7z8Ylut9M9vI3r8fu8";
+    public static final String PASSWORD_KEY = "eJhsWXeEehXx1QgpaVmLEAyW";
 }

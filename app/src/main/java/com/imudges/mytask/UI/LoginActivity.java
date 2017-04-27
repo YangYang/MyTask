@@ -51,7 +51,7 @@ public class LoginActivity extends BaseActivity {
         //创建请求参数对象
         RequestParams params = new MyParamsBuilder("public/login.html",true)
                 .addParameter("username",username)
-                .addParameter("password", Toolkit.passwordEncode(Config.PASSWORD_KEY,password))
+                .addParameter("password", Toolkit._3DES_encode(Config.PASSWORD_KEY.getBytes(),password.getBytes()))
 
                 .builder();
         x.http().get(params, new Callback.CommonCallback<String>() {
