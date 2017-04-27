@@ -11,7 +11,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.imudges.mytask.R;
+import com.imudges.mytask.util.Config;
 import com.imudges.mytask.util.MyParamsBuilder;
+import com.imudges.mytask.util.Toolkit;
 import es.dmoral.toasty.Toasty;
 import org.xutils.common.Callback;
 import org.xutils.http.RequestParams;
@@ -49,12 +51,12 @@ public class LoginActivity extends BaseActivity {
         //创建请求参数对象
         RequestParams params = new MyParamsBuilder("public/login.html",true)
                 .addParameter("username",username)
-                .addParameter("password",password)
+                .addParameter("password", Toolkit.passwordEncode(Config.PASSWORD_KEY,password))
+
                 .builder();
         x.http().get(params, new Callback.CommonCallback<String>() {
             @Override
             public void onSuccess(String s) {
-//                Toasty.info(LoginActivity.this, s,Toast.LENGTH_SHORT).show();
                 JsonParser jsonParser = new JsonParser();
                 JsonObject jsonObject = (JsonObject) jsonParser.parse(s);
                 int code = jsonObject.get("code").getAsInt();

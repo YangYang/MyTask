@@ -20,6 +20,7 @@
                 android:id="@+id/et_username"
                 android:hint="用户名"
                 android:imeOptions="actionDone"
+                android:text="admin"
         />
     </LinearLayout>
     <LinearLayout
@@ -39,6 +40,7 @@
                 android:hint="密码"
                 android:inputType="textPassword"
                 android:imeOptions="actionDone"
+                android:text="123456"
         />
     </LinearLayout>
     <Button
