@@ -7,13 +7,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.imudges.mytask.R;
-import com.imudges.mytask.util.Config;
-import com.imudges.mytask.util.MyParamsBuilder;
-import com.imudges.mytask.util.Toolkit;
+import com.imudges.mytask.Util.Config;
+import com.imudges.mytask.Util.MyParamsBuilder;
+import com.imudges.mytask.Util.Toolkit;
 import es.dmoral.toasty.Toasty;
 import org.xutils.common.Callback;
 import org.xutils.http.RequestParams;
@@ -37,6 +36,7 @@ public class LoginActivity extends BaseActivity {
     @ViewInject(R.id.et_password)
     private EditText etPassword;
 
+
     @Event(value = R.id.btn_login,
             type = View.OnClickListener.class)
     private void onLoginClick(View view){
@@ -48,12 +48,13 @@ public class LoginActivity extends BaseActivity {
         //获取输入的用户名与密码
         String username = etUsername.getText().toString();
         String password = etPassword.getText().toString();
+
         //创建请求参数对象
         RequestParams params = new MyParamsBuilder("public/login.html",true)
                 .addParameter("username",username)
                 .addParameter("password", Toolkit._3DES_encode(Config.PASSWORD_KEY.getBytes(),password.getBytes()))
-
                 .builder();
+
         x.http().get(params, new Callback.CommonCallback<String>() {
             @Override
             public void onSuccess(String s) {
@@ -78,7 +79,7 @@ public class LoginActivity extends BaseActivity {
             }
 
             @Override
-            public void onCancelled(CancelledException e) {
+            public void onCancelled(Callback.CancelledException e) {
 
             }
 
@@ -94,7 +95,6 @@ public class LoginActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
     }
 
     private void goHome(){

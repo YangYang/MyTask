@@ -1,4 +1,4 @@
-package com.imudges.mytask.util;
+package com.imudges.mytask.Util;
 
 public class Config {
     /**

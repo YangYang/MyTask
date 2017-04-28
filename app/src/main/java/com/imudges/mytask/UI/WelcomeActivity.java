@@ -8,7 +8,6 @@ import android.os.Message;
 import android.view.Window;
 import android.view.WindowManager;
 import com.imudges.mytask.R;
-import com.imudges.mytask.util.Toolkit;
 
 /**
  * 欢迎界面，停留三秒
