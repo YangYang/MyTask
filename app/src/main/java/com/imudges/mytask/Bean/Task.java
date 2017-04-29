@@ -1,7 +1,6 @@
 package com.imudges.mytask.Bean;
 
 
-
 import java.util.Date;
 
 /**
@@ -19,6 +18,34 @@ public class Task {
 
 
     private Date addTime;
+    /**
+     * 1：未完成
+     * 0：完成
+     * */
+    private int status;
+
+
+    /**
+     * 任务类型
+     * 0，1，2，3四个级别
+     * */
+    private int type;
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
 
     public int getId() {
         return id;
