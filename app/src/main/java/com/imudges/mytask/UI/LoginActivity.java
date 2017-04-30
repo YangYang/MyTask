@@ -36,6 +36,7 @@ public class LoginActivity extends BaseActivity {
     @ViewInject(R.id.et_password)
     private EditText etPassword;
 
+    private String userId = null;
 
     @Event(value = R.id.btn_login,
             type = View.OnClickListener.class)
@@ -65,6 +66,7 @@ public class LoginActivity extends BaseActivity {
                     SharedPreferences sharedPreferences = LoginActivity.this.getSharedPreferences("config",LoginActivity.this.MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPreferences.edit();
                     editor.putString("ak",jsonObject.get("data").getAsJsonObject().get("ak").getAsString());
+                    userId = jsonObject.get("userId").getAsString();
                     editor.commit();
                     //Toasty.success(LoginActivity.this,s,Toast.LENGTH_SHORT).show();
                     goHome();
@@ -99,6 +101,7 @@ public class LoginActivity extends BaseActivity {
 
     private void goHome(){
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        intent.putExtra("userId",userId);
         startActivity(intent);
         finish();
     }

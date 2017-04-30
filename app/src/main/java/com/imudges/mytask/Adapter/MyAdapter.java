@@ -144,12 +144,11 @@ public class MyAdapter extends BaseAdapter implements Filterable{
                 for(Map<String,String> map :mBackContentList){
                     //添加符合过滤原则的数据
                     if(map.get("tv_task_name").contains(constraint) ||
-                            map.get("tv_suumary").contains(constraint) ||
+                            map.get("tv_summary").contains(constraint) ||
                             map.get("tv_add_time").contains(constraint) ||
                             map.get("tv_task_status").contains(constraint)){
                         list.add(map);
                     }
-
                 }
             }
             results.values = list;//将得到的数据集放到FilterResult的value中

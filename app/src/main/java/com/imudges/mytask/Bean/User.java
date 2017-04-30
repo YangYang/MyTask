@@ -12,8 +12,7 @@ import java.util.Date;
 public class User {
 
     @Column(name = "id",
-            isId = true,
-            autoGen = true
+            isId = true
     )
     private int id;
 

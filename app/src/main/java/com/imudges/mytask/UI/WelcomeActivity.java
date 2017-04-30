@@ -23,7 +23,6 @@ public class WelcomeActivity extends Activity{
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_welcome);
         handler.sendEmptyMessageDelayed(0,3000);
-
     }
 
     private Handler handler = new Handler() {
@@ -36,7 +35,7 @@ public class WelcomeActivity extends Activity{
 
     private void goLogin(){
 //        ToastUtil.toast(this,"请先登录");
-        Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
+        Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
         startActivity(intent);
         finish();
     }
