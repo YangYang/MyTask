@@ -2,6 +2,7 @@ package com.imudges.mytask.UI;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
@@ -10,18 +11,23 @@ import android.widget.Toast;
 import com.google.gson.*;
 import com.imudges.mytask.Adapter.MyAdapter;
 import com.imudges.mytask.Bean.Task;
+import com.imudges.mytask.Bean.User;
 import com.imudges.mytask.Listener.MyClickListener;
 import com.imudges.mytask.R;
 import com.imudges.mytask.Util.ConfigReader;
 import com.imudges.mytask.Util.MyParamsBuilder;
 import com.imudges.mytask.Util.Toolkit;
 import es.dmoral.toasty.Toasty;
+import org.xutils.DbManager;
 import org.xutils.common.Callback;
+import org.xutils.db.table.TableEntity;
+import org.xutils.ex.DbException;
 import org.xutils.http.RequestParams;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.ViewInject;
 import org.xutils.x;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,12 +38,33 @@ public class MainActivity extends BaseActivity {
 
     @ViewInject(R.id.listview)
     private ListView listView;
-
     private String ak = null;
-
     private List<Map<String,String>> taskList = null;
-
     private BaseAdapter simpleAdapter = null;
+    private DbManager dbManager;
+
+    //本地数据的初始化
+    private void initDb(){
+        DbManager.DaoConfig daoConfig = new DbManager.DaoConfig()
+                .setDbName("my_task")//设置数据库名
+                .setDbVersion(1)//设置数据库版本,每次启动应用时将会检查该版本号,
+                //发现数据库版本低于这里设置的值将进行数据库升级并触发DbUpgradeListener
+                .setAllowTransaction(true)//设置是否开启事物，默认关闭
+                .setTableCreateListener(new DbManager.TableCreateListener() {
+                    @Override
+                    public void onTableCreated(DbManager dbManager, TableEntity<?> tableEntity) {
+                        //数据库创建时的Listener
+                    }
+                })
+                .setDbDir(new File("/sdcard/download/"))
+                .setDbUpgradeListener(new DbManager.DbUpgradeListener() {
+                    @Override
+                    public void onUpgrade(DbManager dbManager, int i, int i1) {
+                        //设置数据库升级时的Listener，这里可以执行相关数据表的相关修改，比如增加字段等
+                    }
+                });
+        dbManager = x.getDb(daoConfig);
+    }
     private MyClickListener myClickListener = new MyClickListener() {
 
         @Override
@@ -92,7 +119,14 @@ public class MainActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         init();
+        initDb();
+        try {
+            dbManager.deleteById(User.class,1);
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
     }
+
 
     private void init() {
 //        SharedPreferences sharedPreferences = MainActivity.this.getSharedPreferences("config",MainActivity.this.MODE_PRIVATE);
@@ -102,7 +136,11 @@ public class MainActivity extends BaseActivity {
         //发送请求的Builder中添加了ak
         RequestParams params = new MyParamsBuilder(MainActivity.this, "public/get_task_info.html", true)
                 .builder();
+
         x.http().get(params, new Callback.CommonCallback<String>() {
+
+
+
             @Override
             public void onSuccess(String s) {
                 JsonParser jsonParser = new JsonParser();
@@ -118,6 +156,11 @@ public class MainActivity extends BaseActivity {
                                 .setDateFormat("yyyy-MM-dd HH:mm:ss")
                                 .create()
                                 .fromJson(t, Task.class);
+                        try {
+                            dbManager.save(task);
+                        } catch (DbException e) {
+                            e.printStackTrace();
+                        }
                         Map<String,String> map = new HashMap<>();
                         map.put("objId",task.getId() + "");
                         map.put("userId",task.getUserId());

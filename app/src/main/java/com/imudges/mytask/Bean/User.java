@@ -1,26 +1,39 @@
 package com.imudges.mytask.Bean;
 
+import org.xutils.db.annotation.Column;
+import org.xutils.db.annotation.Table;
+
 import java.util.Date;
 
 /**
  * Created by yangyang on 2017/4/28.
  */
+@Table(name="user")
 public class User {
 
+    @Column(name = "id",
+            isId = true,
+            autoGen = true
+    )
     private int id;
 
+    @Column(name="username",
+            property = "NOT NULL"
+    )
     private String username;
 
-
+    @Column(name="password",
+            property = "NOT NULL"
+    )
     private String password;
 
-
+    @Column(name="salt")
     private String salt;
 
-
+    @Column(name="registerTime")
     private Date registerTime;
 
-
+    @Column(name="ak")
     private String ak;
 
     /**
@@ -28,10 +41,11 @@ public class User {
      * 1 : admin
      * */
 
+    @Column(name="privilege")
     private int privilege;
 
     //时间戳
-
+    @Column(name="ts")
     private long ts;
 
     public long getTs() {

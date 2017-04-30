@@ -1,35 +1,47 @@
 package com.imudges.mytask.Bean;
 
 
+import org.xutils.db.annotation.Column;
+import org.xutils.db.annotation.Table;
+
 import java.util.Date;
 
 /**
  * Created by yangyang on 2017/4/26.
  */
+@Table(name = "task")
 public class Task {
 
+    @Column(name = "id",
+            isId = true
+    )
     private int id;
 
+    @Column(name="taskName")
     private String taskName;
 
+    @Column(name="userId")
     private String userId;
 
-
+    @Column(name="summary")
     private String summary;
 
-
+    @Column(name="addTime")
     private Date addTime;
+
     /**
      * 1：未完成
      * 0：完成
      * -1:放弃
      * */
+    @Column(name="status")
     private int status;
 
     /**
      * 任务类型
      * 0，1，2，3四个级别
      * */
+    @Column(name="type")
     private int type;
 
     public String getTaskName() {
