@@ -66,7 +66,7 @@ public class LoginActivity extends BaseActivity {
                     SharedPreferences.Editor editor = sharedPreferences.edit();
                     editor.putString("ak",jsonObject.get("data").getAsJsonObject().get("ak").getAsString());
                     editor.commit();
-                    Toasty.success(LoginActivity.this,s,Toast.LENGTH_SHORT).show();
+                    //Toasty.success(LoginActivity.this,s,Toast.LENGTH_SHORT).show();
                     goHome();
                 }else {
                     Toasty.error(LoginActivity.this,jsonObject.get("msg").getAsString(),Toast.LENGTH_SHORT).show();

@@ -2,11 +2,15 @@ package com.imudges.mytask.UI;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
 import com.google.gson.*;
+import com.imudges.mytask.Adapter.MyAdapter;
 import com.imudges.mytask.Bean.Task;
+import com.imudges.mytask.Listener.MyClickListener;
 import com.imudges.mytask.R;
 import com.imudges.mytask.Util.ConfigReader;
 import com.imudges.mytask.Util.MyParamsBuilder;
@@ -19,7 +23,9 @@ import org.xutils.view.annotation.ViewInject;
 import org.xutils.x;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @ContentView(R.layout.activity_main)
 public class MainActivity extends BaseActivity {
@@ -29,9 +35,30 @@ public class MainActivity extends BaseActivity {
 
     private String ak = null;
 
-    private List<Task> taskList = null;
+    private List<Map<String,String>> taskList = null;
 
-    private SimpleAdapter simpleAdapter;
+    private BaseAdapter simpleAdapter = null;
+    private MyClickListener myClickListener = new MyClickListener() {
+        @Override
+        public void commit(int position, View v) {
+            Toasty.info(MainActivity.this,"点击了提交",Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void edit(int position, View v) {
+            Toasty.info(MainActivity.this,"点击了编辑",Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void abandon(int position, View v) {
+            Toasty.info(MainActivity.this,"点击了放弃",Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void changeStatus(int position, View v) {
+            Toasty.info(MainActivity.this,"点击了改变状态",Toast.LENGTH_SHORT).show();
+        }
+    };
 //    @ViewInject(R.id.btn_test)
 //    private Button btnTest;
 //
@@ -95,10 +122,29 @@ public class MainActivity extends BaseActivity {
                                 .setDateFormat("yyyy-MM-dd HH:mm:ss")
                                 .create()
                                 .fromJson(t, Task.class);
-                        taskList.add(task);
+                        Map<String,String> map = new HashMap<>();
+                        map.put("objId",task.getId() + "");
+                        map.put("userId",task.getUserId());
+                        map.put("tv_task_name",task.getTaskName());
+                        map.put("tv_add_time",task.getAddTime() + "");
+                        map.put("tv_summary",task.getSummary());
+                        if(task.getStatus() == 0){
+                            map.put("tv_task_status","完成");
+                        }
+                        if(task.getStatus() == 1){
+                            map.put("tv_task_status","未完成");
+                        }
+                        if(task.getStatus() == -1){
+                            map.put("tv_task_status","放弃");
+                        }
+                        map.put("tv_task_name",task.getTaskName());
+                        taskList.add(map);
                     }
-//                    List<String,>
-//                    simpleAdapter = new SimpleAdapter(MainActivity.this,);
+
+                    simpleAdapter = new MyAdapter(MainActivity.this,taskList,myClickListener);
+                    listView.setAdapter(simpleAdapter);
+                    listView.setTextFilterEnabled(true);
+                    return ;
                 }
                 Toasty.error(MainActivity.this,new ConfigReader().read(code + ""),Toast.LENGTH_SHORT).show();
             }

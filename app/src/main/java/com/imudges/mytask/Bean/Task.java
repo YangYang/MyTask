@@ -10,6 +10,7 @@ public class Task {
 
     private int id;
 
+    private String taskName;
 
     private String userId;
 
@@ -21,15 +22,23 @@ public class Task {
     /**
      * 1：未完成
      * 0：完成
+     * -1:放弃
      * */
     private int status;
-
 
     /**
      * 任务类型
      * 0，1，2，3四个级别
      * */
     private int type;
+
+    public String getTaskName() {
+        return taskName;
+    }
+
+    public void setTaskName(String taskName) {
+        this.taskName = taskName;
+    }
 
     public int getType() {
         return type;

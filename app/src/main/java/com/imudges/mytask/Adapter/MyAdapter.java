@@ -4,10 +4,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
+import android.widget.*;
 import com.imudges.mytask.Listener.MyClickListener;
 import com.imudges.mytask.R;
 import org.w3c.dom.Text;
@@ -46,7 +43,7 @@ public class MyAdapter extends BaseAdapter {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
         ViewHolder holder = null;
         if(convertView == null){
             convertView = mInflater.inflate(R.layout.item_list_view,null);
@@ -61,7 +58,7 @@ public class MyAdapter extends BaseAdapter {
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
-
+        //需要修改图片等级
         holder.imgTaskType.setImageResource(R.mipmap.level);
         holder.tvTaskName.setText(mContentList.get(position).get("tv_task_name"));
         holder.tvAddTime.setText(mContentList.get(position).get("tv_add_time"));
@@ -73,7 +70,7 @@ public class MyAdapter extends BaseAdapter {
         holder.btnCommit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                myClickListener.commit(position,v);
             }
         });
 
@@ -81,7 +78,7 @@ public class MyAdapter extends BaseAdapter {
         holder.btnEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                myClickListener.edit(position,v);
             }
         });
 
@@ -89,15 +86,20 @@ public class MyAdapter extends BaseAdapter {
         holder.btnAbandon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                myClickListener.abandon(position,v);
             }
         });
 
-        holder.btnTaskStatus = (Button) convertView.findViewById(R.id.btn_task_status);
-        holder.btnTaskStatus.setOnClickListener(new View.OnClickListener() {
+        holder.imgBtnTaskStatus = (ImageButton) convertView.findViewById(R.id.btn_task_status);
+        if(holder.tvTaskStatus.getText().toString().equals("完成")){
+            holder.imgBtnTaskStatus.setImageResource(R.drawable.selected);
+        } else if( holder.tvTaskStatus.getText().toString().equals("放弃") ||  holder.tvTaskStatus.getText().toString().equals("未完成")){
+            holder.imgBtnTaskStatus.setImageResource(R.drawable.select);
+        }
+        holder.imgBtnTaskStatus.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                myClickListener.changeStatus(position,v);
             }
         });
 
@@ -110,7 +112,7 @@ public class MyAdapter extends BaseAdapter {
         public TextView tvAddTime;
 
         public TextView tvTaskStatus;//任务状态
-        public Button btnTaskStatus;
+        public ImageButton imgBtnTaskStatus;
 
         public TextView tvSummary;//任务描述
         public Button btnCommit;//提交
