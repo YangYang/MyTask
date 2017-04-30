@@ -73,13 +73,6 @@ public class MyAdapter extends BaseAdapter implements Filterable{
         holder.tvSummary.setText(mContentList.get(position).get("tv_summary"));
 
 
-        holder.btnCommit = (Button) convertView.findViewById(R.id.btn_commit);
-        holder.btnCommit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                myClickListener.commit(position,v);
-            }
-        });
 
         holder.btnEdit = (Button) convertView.findViewById(R.id.btn_edit);
         holder.btnEdit.setOnClickListener(new View.OnClickListener() {
@@ -130,7 +123,6 @@ public class MyAdapter extends BaseAdapter implements Filterable{
         public ImageButton imgBtnTaskStatus;
 
         public TextView tvSummary;//任务描述
-        public Button btnCommit;//提交
         public Button btnEdit;//编辑
         public Button btnAbandon;//放弃
     }

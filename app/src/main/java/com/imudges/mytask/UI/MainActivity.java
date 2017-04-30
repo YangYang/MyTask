@@ -39,10 +39,6 @@ public class MainActivity extends BaseActivity {
 
     private BaseAdapter simpleAdapter = null;
     private MyClickListener myClickListener = new MyClickListener() {
-        @Override
-        public void commit(int position, View v) {
-            Toasty.info(MainActivity.this,"点击了提交",Toast.LENGTH_SHORT).show();
-        }
 
         @Override
         public void edit(int position, View v) {

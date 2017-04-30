@@ -130,17 +130,6 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
                 <Button
-                        android:id="@+id/btn_commit"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/shape"
-                        android:layout_marginLeft="8dp"
-                        android:layout_marginBottom="10dp"
-                        android:textColor="#ffffff"
-                        android:textSize="15dp"
-                        android:layout_weight="1"
-                        android:text="提交"/>
-                <Button
                         android:id="@+id/btn_edit"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -158,6 +147,7 @@
                         android:background="@drawable/shape"
                         android:layout_marginLeft="25dp"
                         android:layout_marginBottom="10dp"
+                        android:layout_marginRight="23dp"
                         android:textColor="#ffffff"
                         android:textSize="15dp"
                         android:layout_weight="1"
