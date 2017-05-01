@@ -147,8 +147,8 @@ public class MainActivity extends BaseActivity {
             try {
                 dbManager.delete(User.class);
                 User user = new User();
-                user.setId(Integer.parseInt(userId));
-                dbManager.saveOrUpdate(user);
+                user.setUsername(userId);
+                dbManager.saveBindingId(user);
             } catch (DbException e) {
                 e.printStackTrace();
             }
@@ -193,8 +193,9 @@ public class MainActivity extends BaseActivity {
             } catch (DbException e) {
                 e.printStackTrace();
             }
-            if(list.size() !=0 ){
-                userId = list.get(0).getId() + "";
+            if(list!=null && list.size() !=0 ){
+                userId = list.get(0).getUsername();
+                initInnerData();
             } else {
                 //用户未登录，从本地获取数据
                 initInnerData();

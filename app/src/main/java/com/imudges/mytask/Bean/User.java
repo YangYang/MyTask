@@ -16,13 +16,11 @@ public class User {
     )
     private int id;
 
-    @Column(name="username",
-            property = "NOT NULL"
+    @Column(name="username"
     )
     private String username;
 
-    @Column(name="password",
-            property = "NOT NULL"
+    @Column(name="password"
     )
     private String password;
 
