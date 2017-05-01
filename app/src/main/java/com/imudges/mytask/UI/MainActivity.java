@@ -1,9 +1,12 @@
 package com.imudges.mytask.UI;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.*;
 import com.google.gson.*;
@@ -13,8 +16,10 @@ import com.imudges.mytask.Bean.User;
 import com.imudges.mytask.Listener.MyClickListener;
 import com.imudges.mytask.R;
 import com.imudges.mytask.Util.ConfigReader;
+import com.imudges.mytask.Util.MyDbManager;
 import com.imudges.mytask.Util.MyParamsBuilder;
 import com.imudges.mytask.Util.Toolkit;
+import com.yalantis.phoenix.PullToRefreshView;
 import es.dmoral.toasty.Toasty;
 import org.xutils.DbManager;
 import org.xutils.common.Callback;
@@ -42,57 +47,135 @@ public class MainActivity extends BaseActivity {
     private BaseAdapter simpleAdapter = null;
     private DbManager dbManager;
     private String userId = null;
+    private MyDbManager myDbManager;
+
+    //下拉刷新延迟时间
+    private static long REFRESH_DELAY = 1000;
 
     @ViewInject(R.id.btn_login)
     private Button btnLogin;
 
-    @Event(value = R.id.btn_login,type = View.OnClickListener.class)
-    public void login(View view){
-        Intent intent = new Intent(MainActivity.this,LoginActivity.class);
+    @ViewInject(R.id.pull_to_refresh)
+    private PullToRefreshView mPullToRefreshView;
+
+    @Event(value = R.id.btn_login, type = View.OnClickListener.class)
+    public void login(View view) {
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);
         finish();
     }
 
     //本地数据的初始化
     private void initDb() {
-        DbManager.DaoConfig daoConfig = new DbManager.DaoConfig()
-                .setDbName("my_task")//设置数据库名
-                .setDbVersion(1)//设置数据库版本,每次启动应用时将会检查该版本号,
-                //发现数据库版本低于这里设置的值将进行数据库升级并触发DbUpgradeListener
-                .setAllowTransaction(true)//设置是否开启事物，默认关闭
-                .setTableCreateListener(new DbManager.TableCreateListener() {
-                    @Override
-                    public void onTableCreated(DbManager dbManager, TableEntity<?> tableEntity) {
-                        //数据库创建时的Listener
-                    }
-                })
-                .setDbDir(new File("/sdcard/download/"))
-                .setDbUpgradeListener(new DbManager.DbUpgradeListener() {
-                    @Override
-                    public void onUpgrade(DbManager dbManager, int i, int i1) {
-                        //设置数据库升级时的Listener，这里可以执行相关数据表的相关修改，比如增加字段等
-                    }
-                });
-        dbManager = x.getDb(daoConfig);
+        myDbManager = MyDbManager.getMyDbManager();
+        dbManager = myDbManager.getDbManagerObj();
+//        DbManager.DaoConfig daoConfig = new DbManager.DaoConfig()
+//                .setDbName("my_task")//设置数据库名
+//                .setDbVersion(1)//设置数据库版本,每次启动应用时将会检查该版本号,
+//                //发现数据库版本低于这里设置的值将进行数据库升级并触发DbUpgradeListener
+//                .setAllowTransaction(true)//设置是否开启事物，默认关闭
+//                .setTableCreateListener(new DbManager.TableCreateListener() {
+//                    @Override
+//                    public void onTableCreated(DbManager dbManager, TableEntity<?> tableEntity) {
+//                        //数据库创建时的Listener
+//                    }
+//                })
+//                .setDbDir(new File("/sdcard/download/"))
+//                .setDbUpgradeListener(new DbManager.DbUpgradeListener() {
+//                    @Override
+//                    public void onUpgrade(DbManager dbManager, int i, int i1) {
+//                        //设置数据库升级时的Listener，这里可以执行相关数据表的相关修改，比如增加字段等
+//                    }
+//                });
+//        dbManager = x.getDb(daoConfig);
     }
 
     private MyClickListener myClickListener = new MyClickListener() {
 
         @Override
         public void edit(int position, View v) {
-            Toasty.info(MainActivity.this, "点击了编辑", Toast.LENGTH_SHORT).show();
+            Toasty.info(MainActivity.this, "点击了" + position + "位置的编辑", Toast.LENGTH_SHORT).show();
         }
 
         @Override
         public void abandon(int position, View v) {
-            Toasty.info(MainActivity.this, "点击了放弃", Toast.LENGTH_SHORT).show();
+            if (taskList.get(position).get("tv_task_status").equals("完成")) {
+                Toasty.info(MainActivity.this, "该任务已完成，不可放弃", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (taskList.get(position).get("tv_task_status").equals("放弃")) {
+                Toasty.info(MainActivity.this, "该任务已放弃，不可重复放弃", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            giveUpTask(position, v);
+//            dbManager.saveOrUpdate();
+            //Toasty.info(MainActivity.this, "点击了" + position +"位置的放弃", Toast.LENGTH_SHORT).show();
         }
 
         @Override
         public void changeStatus(int position, View v) {
-            Toasty.info(MainActivity.this, "点击了改变状态", Toast.LENGTH_SHORT).show();
+            if (taskList.get(position).get("tv_task_status").equals("完成")) {
+                Toasty.info(MainActivity.this, "恭喜你，任务已完成！", Toast.LENGTH_SHORT).show();
+            }
+            if (taskList.get(position).get("tv_task_status").equals("未完成")) {
+                taskList.get(position).put("tv_task_status", "完成");
+                simpleAdapter.notifyDataSetChanged();
+            }
+            if (taskList.get(position).get("tv_task_status").equals("放弃")) {
+                Toasty.info(MainActivity.this, "该任务已放弃！", Toast.LENGTH_SHORT).show();
+            }
         }
     };
+
+    /**
+     * 放弃任务的dialog
+     */
+    private void giveUpTask(final int position, View v) {
+        AlertDialog.Builder giveUpTaskDialog =
+                new AlertDialog.Builder(MainActivity.this);
+        View dialogView = LayoutInflater.from(MainActivity.this)
+                .inflate(R.layout.dialog_give_up_task, null);
+        giveUpTaskDialog.setTitle("放弃任务");
+        giveUpTaskDialog.setView(dialogView);
+        //设置button以及点击事件
+        giveUpTaskDialog.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                taskList.get(position).put("tv_task_status", "放弃");
+                simpleAdapter.notifyDataSetChanged();
+                Toasty.info(MainActivity.this, "下次制定一个容易一些的任务吧~", Toast.LENGTH_SHORT).show();
+            }
+        });
+        giveUpTaskDialog.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Toasty.info(MainActivity.this, "对于任务，我们要不抛弃不放弃！", Toast.LENGTH_SHORT).show();
+            }
+        });
+        giveUpTaskDialog.show();
+    }
+
+//    private void changeImageBtnViewSrc(int position,View view){
+//        if(taskList!=null && taskList.size()!=0){
+//            Map<String,String> map = taskList.get(position);
+//            String status = map.get("status");
+//            switch (status){
+//                case "-1":
+//                    Toasty.info(MainActivity.this,"你已放弃此任务，不可修改状态",Toast.LENGTH_SHORT).show();
+//                    break;
+//                case "0":
+//
+//                    break;
+//
+//                case "1":
+//
+//                    break;
+//
+//            }
+//        } else {
+//            return ;
+//        }
+//    }
 //    @ViewInject(R.id.btn_test)
 //    private Button btnTest;
 //
@@ -130,8 +213,8 @@ public class MainActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         initDb();
-        init();
-
+        requestData();
+        initPullRefresh();
 //        try {
 //            dbManager.deleteById(User.class,1);
 //        } catch (DbException e) {
@@ -139,10 +222,28 @@ public class MainActivity extends BaseActivity {
 //        }
     }
 
+    private void initPullRefresh() {
+        mPullToRefreshView = (PullToRefreshView) findViewById(R.id.pull_to_refresh);
+        mPullToRefreshView.setOnRefreshListener(new PullToRefreshView.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                mPullToRefreshView.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mPullToRefreshView.setRefreshing(false);
+                        requestData();
+                    }
+                }, REFRESH_DELAY);
+            }
+        });
+    }
 
-    private void init() {
+    private void requestData() {
+
         userId = getIntent().getStringExtra("userId");
         if (userId != null) {
+            //TODO 登录成功，同步服务器数据库
+
             //修改本地数据库 userId为当前登录用户的userId
             try {
                 dbManager.delete(User.class);
@@ -185,19 +286,19 @@ public class MainActivity extends BaseActivity {
                 }
             });
         } else {
-            //TODO 不能读取数据库内部信息
-            List <User> list = null;
+            //用户未登录，从本地获取数据
+            List<User> list = null;
             try {
                 list = dbManager.selector(User.class)
                         .findAll();
             } catch (DbException e) {
                 e.printStackTrace();
             }
-            if(list!=null && list.size() !=0 ){
+            if (list != null && list.size() != 0) {
                 userId = list.get(0).getUsername();
                 initInnerData();
             } else {
-                //用户未登录，从本地获取数据
+                Toasty.error(MainActivity.this, "本地数据读取失败，请登陆后从服务器获取数据", Toast.LENGTH_SHORT).show();
                 initInnerData();
             }
         }
@@ -282,7 +383,7 @@ public class MainActivity extends BaseActivity {
                 taskList.add(map);
                 //保存数据到数据库内
                 try {
-                    dbManager.save(task);
+                    dbManager.saveBindingId(task);
                 } catch (DbException e) {
                     e.printStackTrace();
                 }

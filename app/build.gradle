@@ -32,4 +32,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.1.1'
     testCompile 'junit:junit:4.12'
     compile 'com.github.GrenderG:Toasty:1.1.5'
+
+    compile 'com.yalantis:phoenix:1.2.3'
+
 }
