@@ -5,7 +5,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.*;
@@ -19,6 +22,7 @@ import com.imudges.mytask.Util.ConfigReader;
 import com.imudges.mytask.Util.MyDbManager;
 import com.imudges.mytask.Util.MyParamsBuilder;
 import com.imudges.mytask.Util.Toolkit;
+import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 import com.yalantis.phoenix.PullToRefreshView;
 import es.dmoral.toasty.Toasty;
 import org.xutils.DbManager;
@@ -37,6 +41,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+//TODO 注销和添加的时候需要强制更新数据库内部数据
+
 @ContentView(R.layout.activity_main)
 public class MainActivity extends BaseActivity {
 
@@ -45,19 +51,24 @@ public class MainActivity extends BaseActivity {
     private String ak = null;
     private List<Map<String, String>> taskList = null;
     private BaseAdapter simpleAdapter = null;
-    private DbManager dbManager;
     private String userId = null;
-    private MyDbManager myDbManager;
+    private SlidingMenu slidingMenu;
 
     //下拉刷新延迟时间
     private static long REFRESH_DELAY = 1000;
-
-    @ViewInject(R.id.btn_login)
-    private Button btnLogin;
-
     @ViewInject(R.id.pull_to_refresh)
     private PullToRefreshView mPullToRefreshView;
 
+    //TODO
+    @ViewInject(R.id.btn_about)
+    private Button menuBtnAbout;
+    @Event(value = R.id.btn_about, type = View.OnClickListener.class)
+    public void about(View view){
+        Toasty.info(MainActivity.this,"点击了关于作者",Toast.LENGTH_SHORT).show();
+    }
+
+    @ViewInject(R.id.btn_login)
+    private Button btnLogin;
     @Event(value = R.id.btn_login, type = View.OnClickListener.class)
     public void login(View view) {
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
@@ -65,31 +76,44 @@ public class MainActivity extends BaseActivity {
         finish();
     }
 
-    //本地数据的初始化
-    private void initDb() {
-        myDbManager = MyDbManager.getMyDbManager();
-        dbManager = myDbManager.getDbManagerObj();
-//        DbManager.DaoConfig daoConfig = new DbManager.DaoConfig()
-//                .setDbName("my_task")//设置数据库名
-//                .setDbVersion(1)//设置数据库版本,每次启动应用时将会检查该版本号,
-//                //发现数据库版本低于这里设置的值将进行数据库升级并触发DbUpgradeListener
-//                .setAllowTransaction(true)//设置是否开启事物，默认关闭
-//                .setTableCreateListener(new DbManager.TableCreateListener() {
-//                    @Override
-//                    public void onTableCreated(DbManager dbManager, TableEntity<?> tableEntity) {
-//                        //数据库创建时的Listener
-//                    }
-//                })
-//                .setDbDir(new File("/sdcard/download/"))
-//                .setDbUpgradeListener(new DbManager.DbUpgradeListener() {
-//                    @Override
-//                    public void onUpgrade(DbManager dbManager, int i, int i1) {
-//                        //设置数据库升级时的Listener，这里可以执行相关数据表的相关修改，比如增加字段等
-//                    }
-//                });
-//        dbManager = x.getDb(daoConfig);
+
+    @ViewInject(R.id.btn_exit)
+    private Button menuBtnExit;
+    @Event(value = R.id.btn_exit, type = View.OnClickListener.class)
+    public void exit(View view){
+        finish();
     }
 
+    //TODO
+    @ViewInject(R.id.btn_logout)
+    private Button menuBtnLogout;
+    @Event(value = R.id.btn_logout, type = View.OnClickListener.class)
+    public void logout(View view){
+        Intent intent = new Intent(MainActivity.this,LoginActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
+    //TODO
+    @ViewInject(R.id.btn_change_password)
+    private Button menuBtnModifyPassword;
+    @Event(value = R.id.btn_change_password, type = View.OnClickListener.class)
+    public void modifyPassword(View view){
+        Toasty.info(MainActivity.this,"点击了修改密码",Toast.LENGTH_SHORT).show();
+    }
+
+    //数据库对象的初始化
+    private DbManager dbManager;
+    private MyDbManager myDbManager;
+    private void initDb() {
+        //单例MyDbManager
+        myDbManager = MyDbManager.getMyDbManager();
+        dbManager = myDbManager.getDbManagerObj();
+    }
+
+    /**
+     * 点击的监听者
+     */
     private MyClickListener myClickListener = new MyClickListener() {
 
         @Override
@@ -115,7 +139,7 @@ public class MainActivity extends BaseActivity {
         @Override
         public void changeStatus(int position, View v) {
             if (taskList.get(position).get("tv_task_status").equals("完成")) {
-                Toasty.info(MainActivity.this, "恭喜你，任务已完成！", Toast.LENGTH_SHORT).show();
+                Toasty.info(MainActivity.this, "任务已经完成", Toast.LENGTH_SHORT).show();
             }
             if (taskList.get(position).get("tv_task_status").equals("未完成")) {
                 taskList.get(position).put("tv_task_status", "完成");
@@ -154,28 +178,6 @@ public class MainActivity extends BaseActivity {
         });
         giveUpTaskDialog.show();
     }
-
-//    private void changeImageBtnViewSrc(int position,View view){
-//        if(taskList!=null && taskList.size()!=0){
-//            Map<String,String> map = taskList.get(position);
-//            String status = map.get("status");
-//            switch (status){
-//                case "-1":
-//                    Toasty.info(MainActivity.this,"你已放弃此任务，不可修改状态",Toast.LENGTH_SHORT).show();
-//                    break;
-//                case "0":
-//
-//                    break;
-//
-//                case "1":
-//
-//                    break;
-//
-//            }
-//        } else {
-//            return ;
-//        }
-//    }
 //    @ViewInject(R.id.btn_test)
 //    private Button btnTest;
 //
@@ -213,15 +215,13 @@ public class MainActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         initDb();
-        requestData();
+        initData();
         initPullRefresh();
-//        try {
-//            dbManager.deleteById(User.class,1);
-//        } catch (DbException e) {
-//            e.printStackTrace();
-//        }
+        initSlidingMenu();
     }
-
+    /**
+     * 下拉刷新
+     * */
     private void initPullRefresh() {
         mPullToRefreshView = (PullToRefreshView) findViewById(R.id.pull_to_refresh);
         mPullToRefreshView.setOnRefreshListener(new PullToRefreshView.OnRefreshListener() {
@@ -231,19 +231,20 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void run() {
                         mPullToRefreshView.setRefreshing(false);
-                        requestData();
+                        initData();
                     }
                 }, REFRESH_DELAY);
             }
         });
     }
 
-    private void requestData() {
+    /**
+     * 初始化ListView数据
+     * */
+    private void initData() {
 
         userId = getIntent().getStringExtra("userId");
         if (userId != null) {
-            //TODO 登录成功，同步服务器数据库
-
             //修改本地数据库 userId为当前登录用户的userId
             try {
                 dbManager.delete(User.class);
@@ -304,7 +305,9 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    //从本地数据库内加载数据
+    /**
+     * 从本地数据库加载数据
+     * */
     private void initInnerData() {
         try {
             //查询结果
@@ -342,7 +345,9 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    //从服务器加载数据
+    /**
+     * 从服务器加载数据
+     * */
     private String initNetWorkData(String s) {
         JsonParser jsonParser = new JsonParser();
         JsonObject jsonObject = (JsonObject) jsonParser.parse(s);
@@ -395,6 +400,82 @@ public class MainActivity extends BaseActivity {
         } else {
             return jsonObject.get("msg").getAsString();
         }
+    }
+    /**
+     * 侧滑菜单
+     * */
+    private void initSlidingMenu(){
+        //配置sliding menu
+        slidingMenu = new SlidingMenu(this);
+        slidingMenu.setMode(SlidingMenu.LEFT);
+
+
+        //设置侧滑菜单布局
+        slidingMenu.setMenu(R.layout.menu_left_sliding_menu);
+
+        //设置触摸屏幕的模式
+        slidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
+
+        //设置侧滑菜单的效果
+        slidingMenu.setShadowWidthRes(R.dimen.shadow_width);
+        slidingMenu.setShadowDrawable(R.drawable.shadow);
+
+        // 设置滑动菜单视图的宽度
+        slidingMenu.setBehindOffsetRes(R.dimen.slidingmenu_offset);
+
+        //设置SlidingMenu是否淡入/淡出
+        slidingMenu.setFadeEnabled(true);
+
+        //设置淡入淡出效果的值
+        slidingMenu.setFadeDegree(0.4f);
+        slidingMenu.attachToActivity(this,SlidingMenu.SLIDING_CONTENT);
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    private long exitTime = 0;
+    /**
+     * 再按一次退出功能
+     * */
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if(keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_DOWN){
+            if((System.currentTimeMillis()-exitTime) > 2000){
+                Toast.makeText(getApplicationContext(), "再按一次退出程序", Toast.LENGTH_SHORT).show();
+                exitTime = System.currentTimeMillis();
+            } else {
+                finish();
+                System.exit(0);
+            }
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
 }

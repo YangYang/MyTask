@@ -8,7 +8,7 @@ import org.xutils.x;
 import java.io.File;
 
 /**
- * Created by yangyang on 2017/5/1.
+ * 单例实现的dbManager，避免在项目的不同Activity中重复实例化DbManager
  */
 public class MyDbManager{
     private static DbManager dbManager = null;

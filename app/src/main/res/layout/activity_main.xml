@@ -56,14 +56,5 @@
                 android:id="@+id/listview"
         />
         </com.yalantis.phoenix.PullToRefreshView>
-        <Button
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="0.2"
-                android:id="@+id/btn_login"
-                android:onClick="login"
-                android:text="登录"
-        />
-
     </LinearLayout>
 </LinearLayout>
