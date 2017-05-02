@@ -27,7 +27,10 @@ import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
 import org.xutils.x;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 
@@ -146,7 +149,13 @@ public class LoginActivity extends BaseActivity {
     private void syncData(List<Task> taskList) {
         RequestParams params = new MyParamsBuilder(LoginActivity.this, "public/upload_task.html", false)
                 .builder();
-        Gson gson = new GsonBuilder().create();
+        Gson gson = new GsonBuilder()
+                .setDateFormat("yyyy-MM-dd HH:mm:ss")
+                .create();
+//        //格式化taskList的时间格式
+//        for(int i = 0;i<taskList.size();i++){
+//            taskList.get(i).setAddTime( taskList.get(i).getAddTime());
+//        }
         String json = gson.toJson(taskList);
         params.addBodyParameter("tasks",json);
         x.http().post(params, new Callback.CommonCallback<String>() {

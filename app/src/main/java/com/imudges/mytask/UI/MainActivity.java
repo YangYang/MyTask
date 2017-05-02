@@ -62,7 +62,6 @@ public class MainActivity extends BaseActivity {
     //TODO
     @ViewInject(R.id.btn_about)
     private Button menuBtnAbout;
-    @Event(value = R.id.btn_about, type = View.OnClickListener.class)
     public void about(View view){
         Toasty.info(MainActivity.this,"点击了关于作者",Toast.LENGTH_SHORT).show();
     }
@@ -84,7 +83,6 @@ public class MainActivity extends BaseActivity {
         finish();
     }
 
-    //TODO
     @ViewInject(R.id.btn_logout)
     private Button menuBtnLogout;
     @Event(value = R.id.btn_logout, type = View.OnClickListener.class)
