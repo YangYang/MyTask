@@ -3,9 +3,11 @@ package com.imudges.mytask.Util;
 import org.nutz.dao.DB;
 import org.xutils.DbManager;
 import org.xutils.db.table.TableEntity;
+import org.xutils.ex.DbException;
 import org.xutils.x;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * 单例实现的dbManager，避免在项目的不同Activity中重复实例化DbManager
@@ -46,5 +48,34 @@ public class MyDbManager{
             initDb();
         }
         return dbManager;
+    }
+
+    /**
+     * 将本地T类型的数据库清空
+     * */
+    public static<T> boolean cleanLocalData(Class<T> type){
+        try {
+            dbManager.delete(type);
+            return true;
+        } catch (DbException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * 清空T类型的数据，并插入数据
+     * */
+    public static<T> boolean cleanLocalDataAndInsert(Class<T> type, List<T> newDataList){
+        cleanLocalData(type);
+        for(T t : newDataList){
+            try {
+                dbManager.saveBindingId(t);
+            } catch (DbException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return true;
     }
 }

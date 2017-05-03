@@ -352,12 +352,14 @@ public class MainActivity extends BaseActivity {
         int code = jsonObject.get("code").getAsInt();
         //检测请求是否成功
         if (code == 0) {
-            //请求成功，清空数据库内部Task
-            try {
-                dbManager.delete(Task.class);
-            } catch (DbException e) {
-                e.printStackTrace();
-            }
+//            //请求成功，清空数据库内部Task
+//            try {
+//                dbManager.delete(Task.class);
+//            } catch (DbException e) {
+//                e.printStackTrace();
+//            }
+            //存入数据库的数据集
+            List<Task> taskDataSet = new ArrayList<Task>();
             //向adapter中添加数据集
             JsonArray jsonArray = jsonObject.get("data").getAsJsonObject().get("tasks").getAsJsonArray();
             taskList = new ArrayList<>();
@@ -367,6 +369,7 @@ public class MainActivity extends BaseActivity {
                         .setDateFormat("yyyy-MM-dd HH:mm:ss")
                         .create()
                         .fromJson(t, Task.class);
+                taskDataSet.add(task);
                 Map<String, String> map = new HashMap<>();
                 map.put("objId", task.getId() + "");
                 map.put("userId", task.getUserId());
@@ -385,12 +388,15 @@ public class MainActivity extends BaseActivity {
                 map.put("tv_task_name", task.getTaskName());
                 taskList.add(map);
                 //保存数据到数据库内
-                try {
-                    dbManager.saveBindingId(task);
-                } catch (DbException e) {
-                    e.printStackTrace();
-                }
+//                try {
+//                    dbManager.saveBindingId(task);//使用saveBindingId保存实体时会为实体的id赋值
+//                } catch (DbException e) {
+//                    e.printStackTrace();
+//                }
             }
+            //清空数据库并插入数据
+            MyDbManager.cleanLocalDataAndInsert(Task.class,taskDataSet);
+//            myDbManager.cleanLocalDataAndInsert
             simpleAdapter = new MyAdapter(MainActivity.this, taskList, myClickListener);
             listView.setAdapter(simpleAdapter);
             listView.setTextFilterEnabled(true);

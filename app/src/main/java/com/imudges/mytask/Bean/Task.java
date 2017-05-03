@@ -47,6 +47,10 @@ public class Task {
     @Column(name="taskWebId")
     private String taskWebId;
 
+    /**
+     * 0:已经同步
+     * 1：未同步
+     * */
     @Column(name="syncStatus")
     private String syncStatus;
 

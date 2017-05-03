@@ -168,6 +168,7 @@ public class LoginActivity extends BaseActivity {
                         JsonObject jsonObject = (JsonObject) jsonParser.parse(s);
                         int code = jsonObject.get("code").getAsInt();
                         if(code == 0){
+                            //TODO 更新本地数据库
                             Toasty.success(LoginActivity.this,"本地数据同步成功",Toast.LENGTH_SHORT).show();
                         } else {
                             Toasty.success(LoginActivity.this,"本地数据同步失败",Toast.LENGTH_SHORT).show();
@@ -181,7 +182,7 @@ public class LoginActivity extends BaseActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toasty.success(LoginActivity.this,throwable.getMessage(),Toast.LENGTH_SHORT).show();
+                        Toasty.error(LoginActivity.this,throwable.getMessage(),Toast.LENGTH_SHORT).show();
                     }
                 });
             }
