@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.SimpleAdapter;
 import android.widget.Toast;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -18,6 +19,7 @@ import com.imudges.mytask.Util.MyDbManager;
 import com.imudges.mytask.Util.MyParamsBuilder;
 import com.imudges.mytask.Util.Toolkit;
 import es.dmoral.toasty.Toasty;
+import org.nutz.json.Json;
 import org.xutils.DbManager;
 import org.xutils.common.Callback;
 import org.xutils.ex.DbException;
@@ -130,7 +132,7 @@ public class LoginActivity extends BaseActivity {
             public void run() {
                 List<Task> taskList = new ArrayList<>();
                 try {
-                    taskList = dbManager.selector(Task.class).where("userId","=",userId).findAll();
+                    taskList = dbManager.selector(Task.class).where("userId", "=", userId).findAll();
                 } catch (DbException e) {
                     e.printStackTrace();
                 }
@@ -156,8 +158,8 @@ public class LoginActivity extends BaseActivity {
 //        for(int i = 0;i<taskList.size();i++){
 //            taskList.get(i).setAddTime( taskList.get(i).getAddTime());
 //        }
-        String json = gson.toJson(taskList);
-        params.addBodyParameter("tasks",json);
+        final String json = gson.toJson(taskList);
+        params.addBodyParameter("tasks", json);
         x.http().post(params, new Callback.CommonCallback<String>() {
             @Override
             public void onSuccess(final String s) {
@@ -165,14 +167,28 @@ public class LoginActivity extends BaseActivity {
                     @Override
                     public void run() {
                         JsonParser jsonParser = new JsonParser();
+                        //Gson 解析
                         JsonObject jsonObject = (JsonObject) jsonParser.parse(s);
                         int code = jsonObject.get("code").getAsInt();
-                        if(code == 0){
-                            //TODO 更新本地数据库
-                            Toasty.success(LoginActivity.this,"本地数据同步成功",Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toasty.success(LoginActivity.this,"本地数据同步失败",Toast.LENGTH_SHORT).show();
+                        String jsonData = jsonObject.get("data").toString();
+                        //同步成功
+                        if (code == 0) {
+                            List<Task> taskDataSet = new ArrayList<>();
+                            //Nutz Json解析
+                            if (jsonData != null && !jsonData.equals("")) {
+                                taskDataSet = Json.fromJsonAsList(Task.class, jsonData);
+
+                                //清空数据库并插入数据
+                                MyDbManager.cleanLocalDataAndInsert(Task.class, taskDataSet);
+                                Toasty.success(LoginActivity.this, "本地数据同步成功", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toasty.error(LoginActivity.this, "数据源出现错误，请联系管理员", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+                            return ;
                         }
+                        //同步失败
+                        Toasty.error(LoginActivity.this, "本地数据同步失败", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -182,7 +198,7 @@ public class LoginActivity extends BaseActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toasty.error(LoginActivity.this,throwable.getMessage(),Toast.LENGTH_SHORT).show();
+                        Toasty.error(LoginActivity.this, throwable.getMessage().toString(), Toast.LENGTH_SHORT).show();
                     }
                 });
             }

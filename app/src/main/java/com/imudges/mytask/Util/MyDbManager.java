@@ -70,7 +70,7 @@ public class MyDbManager{
         cleanLocalData(type);
         for(T t : newDataList){
             try {
-                dbManager.saveBindingId(t);
+                dbManager.saveBindingId(t);//使用saveBindingId保存实体时会为实体的id赋值
             } catch (DbException e) {
                 e.printStackTrace();
                 return false;
