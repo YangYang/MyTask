@@ -4,4 +4,7 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="shadow_width">50dp</dimen>
     <dimen name="slidingmenu_offset">50dp</dimen>
+    //NiceSpinner 所需
+    <dimen name="three_grid_unit">24dp</dimen>
+    <dimen name="one_and_a_half_grid_unit">12dp</dimen>
 </resources>

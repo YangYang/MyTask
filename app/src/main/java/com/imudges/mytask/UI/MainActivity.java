@@ -97,13 +97,21 @@ public class MainActivity extends BaseActivity {
         finish();
     }
 
-    //TODO
     @ViewInject(R.id.btn_change_password)
     private Button menuBtnModifyPassword;
     @Event(value = R.id.btn_change_password, type = View.OnClickListener.class)
     public void modifyPassword(View view) {
-        Toasty.info(MainActivity.this, "点击了修改密码", Toast.LENGTH_SHORT).show();
+//        Toasty.info(MainActivity.this, "点击了修改密码", Toast.LENGTH_SHORT).show();
         modifyPasswordDialog();
+    }
+
+    @ViewInject(R.id.btn_add_task)
+    private ImageButton btnAddTask;
+    @Event(value = R.id.btn_add_task ,type = View.OnClickListener.class)
+    public void addTask(View view){
+        Toasty.info(MainActivity.this,"点击了添加",0).show();
+        Intent intent = new Intent(MainActivity.this,AddTaskActivity.class);
+        startActivity(intent);
     }
 
     //数据库对象的初始化

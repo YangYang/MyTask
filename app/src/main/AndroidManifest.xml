@@ -22,7 +22,13 @@
                   android:theme="@style/Theme.AppCompat.Light.NoActionBar">
 
         </activity>
-        <activity android:name=".UI.LoginActivity"></activity>
+        <activity android:name=".UI.LoginActivity">
+
+        </activity>
+        <activity android:name=".UI.AddTaskActivity"
+                  android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+
+        </activity>
     </application>
 
 </manifest>
