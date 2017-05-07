@@ -154,10 +154,6 @@ public class LoginActivity extends BaseActivity {
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd HH:mm:ss")
                 .create();
-//        //格式化taskList的时间格式
-//        for(int i = 0;i<taskList.size();i++){
-//            taskList.get(i).setAddTime( taskList.get(i).getAddTime());
-//        }
         final String json = gson.toJson(taskList);
         params.addBodyParameter("tasks", json);
         x.http().post(params, new Callback.CommonCallback<String>() {

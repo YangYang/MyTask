@@ -18,10 +18,7 @@ import com.imudges.mytask.Bean.Task;
 import com.imudges.mytask.Bean.User;
 import com.imudges.mytask.Listener.MyClickListener;
 import com.imudges.mytask.R;
-import com.imudges.mytask.Util.ConfigReader;
-import com.imudges.mytask.Util.MyDbManager;
-import com.imudges.mytask.Util.MyParamsBuilder;
-import com.imudges.mytask.Util.Toolkit;
+import com.imudges.mytask.Util.*;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 import com.yalantis.phoenix.PullToRefreshView;
 import es.dmoral.toasty.Toasty;
@@ -59,15 +56,18 @@ public class MainActivity extends BaseActivity {
     @ViewInject(R.id.pull_to_refresh)
     private PullToRefreshView mPullToRefreshView;
 
-    //TODO
+    //TODO about
     @ViewInject(R.id.btn_about)
     private Button menuBtnAbout;
-    public void about(View view){
-        Toasty.info(MainActivity.this,"点击了关于作者",Toast.LENGTH_SHORT).show();
+
+    public void about(View view) {
+        Toasty.info(MainActivity.this, "点击了关于作者", Toast.LENGTH_SHORT).show();
     }
+
 
     @ViewInject(R.id.btn_login)
     private Button btnLogin;
+
     @Event(value = R.id.btn_login, type = View.OnClickListener.class)
     public void login(View view) {
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
@@ -78,16 +78,21 @@ public class MainActivity extends BaseActivity {
 
     @ViewInject(R.id.btn_exit)
     private Button menuBtnExit;
+
+
     @Event(value = R.id.btn_exit, type = View.OnClickListener.class)
-    public void exit(View view){
+    public void exit(View view) {
         finish();
     }
 
+
     @ViewInject(R.id.btn_logout)
     private Button menuBtnLogout;
+
+
     @Event(value = R.id.btn_logout, type = View.OnClickListener.class)
-    public void logout(View view){
-        Intent intent = new Intent(MainActivity.this,LoginActivity.class);
+    public void logout(View view) {
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);
         finish();
     }
@@ -96,13 +101,15 @@ public class MainActivity extends BaseActivity {
     @ViewInject(R.id.btn_change_password)
     private Button menuBtnModifyPassword;
     @Event(value = R.id.btn_change_password, type = View.OnClickListener.class)
-    public void modifyPassword(View view){
-        Toasty.info(MainActivity.this,"点击了修改密码",Toast.LENGTH_SHORT).show();
+    public void modifyPassword(View view) {
+        Toasty.info(MainActivity.this, "点击了修改密码", Toast.LENGTH_SHORT).show();
+        modifyPasswordDialog();
     }
 
     //数据库对象的初始化
     private DbManager dbManager;
     private MyDbManager myDbManager;
+
     private void initDb() {
         //单例MyDbManager
         myDbManager = MyDbManager.getMyDbManager();
@@ -129,7 +136,7 @@ public class MainActivity extends BaseActivity {
                 Toasty.info(MainActivity.this, "该任务已放弃，不可重复放弃", Toast.LENGTH_SHORT).show();
                 return;
             }
-            giveUpTask(position, v);
+            giveUpTaskDialog(position, v);
 //            dbManager.saveOrUpdate();
             //Toasty.info(MainActivity.this, "点击了" + position +"位置的放弃", Toast.LENGTH_SHORT).show();
         }
@@ -152,7 +159,7 @@ public class MainActivity extends BaseActivity {
     /**
      * 放弃任务的dialog
      */
-    private void giveUpTask(final int position, View v) {
+    private void giveUpTaskDialog(final int position, View v) {
         AlertDialog.Builder giveUpTaskDialog =
                 new AlertDialog.Builder(MainActivity.this);
         View dialogView = LayoutInflater.from(MainActivity.this)
@@ -175,6 +182,89 @@ public class MainActivity extends BaseActivity {
             }
         });
         giveUpTaskDialog.show();
+    }
+
+
+    private EditText etOldPassword;
+    private EditText etNewPassword;
+    private EditText etRePassword;
+    /**
+     * 修改密码的dialog
+     */
+    private void modifyPasswordDialog() {
+        AlertDialog.Builder giveUpTaskDialog =
+                new AlertDialog.Builder(MainActivity.this);
+        View dialogView = LayoutInflater.from(MainActivity.this)
+                .inflate(R.layout.dialoig_modify_password, null);
+        giveUpTaskDialog.setTitle("修改密码");
+        giveUpTaskDialog.setView(dialogView);
+        etOldPassword = (EditText) dialogView.findViewById(R.id.et_old_password);
+        etRePassword = (EditText) dialogView.findViewById(R.id.et_re_password);
+        etNewPassword = (EditText) dialogView.findViewById(R.id.et_new_password);
+
+        //设置button以及点击事件
+        giveUpTaskDialog.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                modifyPassword(etOldPassword.getText().toString(),etNewPassword.getText().toString(),etRePassword.getText().toString());
+            }
+        });
+        giveUpTaskDialog.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        });
+        giveUpTaskDialog.show();
+    }
+
+    /**
+     * 修改密码逻辑
+     * -1:旧密码错误
+     * 0 :成功
+     * */
+    private void modifyPassword(String oldPassword,String newPassword,String rePassword){
+        if(!newPassword.equals(rePassword)){
+            Toasty.error(MainActivity.this,"两次输入的密码不匹配",Toast.LENGTH_SHORT).show();
+            return ;
+        }
+        RequestParams params = new MyParamsBuilder(MainActivity.this, "public/midifiy_password.html", true)
+                .addParameter("old_password",Toolkit._3DES_encode(Config.PASSWORD_KEY.getBytes(), oldPassword.getBytes()))
+                .addParameter("new_password",Toolkit._3DES_encode(Config.PASSWORD_KEY.getBytes(), newPassword.getBytes()))
+                .builder();
+        x.http().get(params, new Callback.CommonCallback<String>() {
+            @Override
+            public void onSuccess(String s) {
+                JsonParser jsonParser = new JsonParser();
+                JsonObject jsonObject = (JsonObject) jsonParser.parse(s);
+                int res = jsonObject.get("code").getAsInt();
+                switch (res){
+                    case 0:
+                        Toasty.success(MainActivity.this,"修改成功",Toast.LENGTH_SHORT).show();
+                        break;
+                    case -1:
+                        Toasty.error(MainActivity.this,"旧密码输入错误",Toast.LENGTH_SHORT).show();
+                        break;
+                }
+                return ;
+            }
+
+            @Override
+            public void onError(Throwable throwable, boolean b) {
+
+            }
+
+            @Override
+            public void onCancelled(CancelledException e) {
+
+            }
+
+            @Override
+            public void onFinished() {
+
+            }
+        });
+
     }
 //    @ViewInject(R.id.btn_test)
 //    private Button btnTest;
@@ -217,9 +307,10 @@ public class MainActivity extends BaseActivity {
         initPullRefresh();
         initSlidingMenu();
     }
+
     /**
      * 下拉刷新
-     * */
+     */
     private void initPullRefresh() {
         mPullToRefreshView = (PullToRefreshView) findViewById(R.id.pull_to_refresh);
         mPullToRefreshView.setOnRefreshListener(new PullToRefreshView.OnRefreshListener() {
@@ -238,7 +329,7 @@ public class MainActivity extends BaseActivity {
 
     /**
      * 初始化ListView数据
-     * */
+     */
     private void initData() {
 
         userId = getIntent().getStringExtra("userId");
@@ -305,7 +396,7 @@ public class MainActivity extends BaseActivity {
 
     /**
      * 从本地数据库加载数据
-     * */
+     */
     private void initInnerData() {
         try {
             //查询结果
@@ -345,7 +436,7 @@ public class MainActivity extends BaseActivity {
 
     /**
      * 从服务器加载数据
-     * */
+     */
     private String initNetWorkData(String s) {
         JsonParser jsonParser = new JsonParser();
         JsonObject jsonObject = (JsonObject) jsonParser.parse(s);
@@ -384,7 +475,7 @@ public class MainActivity extends BaseActivity {
             }
 
             //清空数据库并插入请求得到的数据
-            MyDbManager.cleanLocalDataAndInsert(Task.class,taskDataSet);
+            MyDbManager.cleanLocalDataAndInsert(Task.class, taskDataSet);
 
             simpleAdapter = new MyAdapter(MainActivity.this, taskList, myClickListener);
             listView.setAdapter(simpleAdapter);
@@ -394,10 +485,11 @@ public class MainActivity extends BaseActivity {
             return jsonObject.get("msg").getAsString();
         }
     }
+
     /**
      * 侧滑菜单
-     * */
-    private void initSlidingMenu(){
+     */
+    private void initSlidingMenu() {
         //配置sliding menu
         slidingMenu = new SlidingMenu(this);
         slidingMenu.setMode(SlidingMenu.LEFT);
@@ -421,45 +513,20 @@ public class MainActivity extends BaseActivity {
 
         //设置淡入淡出效果的值
         slidingMenu.setFadeDegree(0.4f);
-        slidingMenu.attachToActivity(this,SlidingMenu.SLIDING_CONTENT);
+        slidingMenu.attachToActivity(this, SlidingMenu.SLIDING_CONTENT);
 
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     private long exitTime = 0;
+
     /**
      * 再按一次退出功能
-     * */
+     */
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if(keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_DOWN){
-            if((System.currentTimeMillis()-exitTime) > 2000){
+        if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_DOWN) {
+            if ((System.currentTimeMillis() - exitTime) > 2000) {
                 Toast.makeText(getApplicationContext(), "再按一次退出程序", Toast.LENGTH_SHORT).show();
                 exitTime = System.currentTimeMillis();
             } else {
