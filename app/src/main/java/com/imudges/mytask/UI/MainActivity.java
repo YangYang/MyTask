@@ -1,13 +1,8 @@
 package com.imudges.mytask.UI;
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.*;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,7 +19,6 @@ import com.yalantis.phoenix.PullToRefreshView;
 import es.dmoral.toasty.Toasty;
 import org.xutils.DbManager;
 import org.xutils.common.Callback;
-import org.xutils.db.table.TableEntity;
 import org.xutils.ex.DbException;
 import org.xutils.http.RequestParams;
 import org.xutils.view.annotation.ContentView;
@@ -32,11 +26,12 @@ import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
 import org.xutils.x;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.nutz.log.Logs.init;
 
 //TODO 注销和添加的时候需要强制更新数据库内部数据
 
@@ -50,6 +45,8 @@ public class MainActivity extends BaseActivity {
     private BaseAdapter simpleAdapter = null;
     private String userId = null;
     private SlidingMenu slidingMenu;
+    private final String ACTION_NAME = "REFRESH_LIST";
+    private final String CLOSE_MAIN_ACTIVITY = "CLOSE_MAIN_ACTIVITY";
 
     //下拉刷新延迟时间
     private static long REFRESH_DELAY = 1000;
@@ -97,11 +94,11 @@ public class MainActivity extends BaseActivity {
         finish();
     }
 
+    //TODO 重放问题
     @ViewInject(R.id.btn_change_password)
     private Button menuBtnModifyPassword;
     @Event(value = R.id.btn_change_password, type = View.OnClickListener.class)
     public void modifyPassword(View view) {
-//        Toasty.info(MainActivity.this, "点击了修改密码", Toast.LENGTH_SHORT).show();
         modifyPasswordDialog();
     }
 
@@ -110,7 +107,8 @@ public class MainActivity extends BaseActivity {
     @Event(value = R.id.btn_add_task ,type = View.OnClickListener.class)
     public void addTask(View view){
         Toasty.info(MainActivity.this,"点击了添加",0).show();
-        Intent intent = new Intent(MainActivity.this,AddTaskActivity.class);
+        Intent intent = new Intent(MainActivity.this,AddOrUpdateTaskActivity.class);
+        intent.putExtra("userId",userId);
         startActivity(intent);
     }
 
@@ -250,7 +248,7 @@ public class MainActivity extends BaseActivity {
                     case 0:
                         Toasty.success(MainActivity.this,"修改成功",Toast.LENGTH_SHORT).show();
                         break;
-                    case -1:
+                    case -5:
                         Toasty.error(MainActivity.this,"旧密码输入错误",Toast.LENGTH_SHORT).show();
                         break;
                 }
@@ -274,44 +272,80 @@ public class MainActivity extends BaseActivity {
         });
 
     }
-//    @ViewInject(R.id.btn_test)
-//    private Button btnTest;
-//
-//    @Event(value = R.id.btn_test,type = View.OnClickListener.class)
-//    public void testButtonClick(View v) { // 方法签名必须和接口中的要求一致
-//        Toasty.success(MainActivity.this,"hello world",Toast.LENGTH_SHORT,true).show();
-//        RequestParams params = new MyParamsBuilder(MainActivity.this,"public/get_user_info.html",true)
-//                .builder();
-//        x.http().get(params, new Callback.CommonCallback<String>() {
-//            @Override
-//            public void onSuccess(String s) {
-//                Toasty.info(MainActivity.this, s,Toast.LENGTH_SHORT).show();
-//
-//            }
-//
-//            @Override
-//            public void onError(Throwable throwable, boolean b) {
-//                Toasty.error(MainActivity.this, "网络连接失败",Toast.LENGTH_SHORT).show();
-//            }
-//
-//            @Override
-//            public void onCancelled(CancelledException e) {
-//
-//            }
-//
-//            // 不管成功或者失败最后都会回调该接口
-//            @Override
-//            public void onFinished() {
-//
-//            }
-//        });
-//    }
+
+    /**
+     * 广播，当添加Task或编辑Task时刷新主界面
+     * */
+    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if(action.equals(ACTION_NAME)){
+                //更新数据
+                try {
+                    List<Task> list = dbManager.selector(Task.class)
+                            .where("userId", "=", userId)
+                            .findAll();
+                    taskList.clear();
+                    for(Task task : list){
+                        Map<String, String> map = new HashMap<>();
+                        map.put("objId", task.getId() + "");
+                        map.put("userId", task.getUserId());
+                        map.put("tv_task_name", task.getTaskName());
+                        map.put("tv_add_time", task.getAddTime() + "");
+                        map.put("tv_summary", task.getSummary());
+                        if (task.getStatus() == 0) {
+                            map.put("tv_task_status", "完成");
+                        }
+                        if (task.getStatus() == 1) {
+                            map.put("tv_task_status", "未完成");
+                        }
+                        if (task.getStatus() == -1) {
+                            map.put("tv_task_status", "放弃");
+                        }
+                        map.put("tv_task_name", task.getTaskName());
+                        taskList.add(map);
+                    }
+                    simpleAdapter.notifyDataSetChanged();
+                    //TODO 什么意思？？
+                    mPullToRefreshView.setRefreshing(false);
+                } catch (DbException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                Toasty.error(MainActivity.this,"添加错误",0).show();
+                mPullToRefreshView.setRefreshing(false);
+            }
+            if (action.equals(CLOSE_MAIN_ACTIVITY)){
+                finish();
+            }
+        }
+    };
+
+    /**
+     * 注册广播
+     * */
+    public void registerBroadcastReceiver(){
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(ACTION_NAME);
+        intentFilter.addAction(CLOSE_MAIN_ACTIVITY);
+        //注册广播
+        registerReceiver(broadcastReceiver,intentFilter);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         initDb();
         initData();
+        init();
+    }
+
+    /**
+     * 初始化一些数据
+     * */
+    private void init(){
+        registerBroadcastReceiver();
         initPullRefresh();
         initSlidingMenu();
     }

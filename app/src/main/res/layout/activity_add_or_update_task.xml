@@ -40,7 +40,9 @@
                     android:textColor="#ffffff"
                     android:textSize="20sp"
                     android:text="保存"
-                    android:id="@+id/btn_submit"/>
+                    android:id="@+id/btn_save"
+                    android:onClick="save"
+            />
         </RelativeLayout>
 
     <LinearLayout
@@ -69,6 +71,7 @@
                     android:layout_height="wrap_content"
                     android:hint="请填写此次任务的标题"
                     android:layout_weight="3"
+                    android:id="@+id/et_add_task_task_title"
             />
         </LinearLayout>
         <LinearLayout
@@ -87,6 +90,7 @@
                     android:layout_height="wrap_content"
                     android:hint="请具体描述此次任务"
                     android:layout_weight="3"
+                    android:id="@+id/et_add_task_task_summary"
             />
         </LinearLayout>
         <LinearLayout

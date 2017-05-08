@@ -20,12 +20,12 @@
         </activity>
         <activity android:name=".UI.MainActivity"
                   android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-
+                <!--<action android:name="com.imudges.mytask"/>-->
         </activity>
         <activity android:name=".UI.LoginActivity">
 
         </activity>
-        <activity android:name=".UI.AddTaskActivity"
+        <activity android:name=".UI.AddOrUpdateTaskActivity"
                   android:theme="@style/Theme.AppCompat.Light.NoActionBar">
 
         </activity>
