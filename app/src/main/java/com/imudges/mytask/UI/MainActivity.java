@@ -97,6 +97,7 @@ public class MainActivity extends BaseActivity {
     //TODO 重放问题
     @ViewInject(R.id.btn_change_password)
     private Button menuBtnModifyPassword;
+
     @Event(value = R.id.btn_change_password, type = View.OnClickListener.class)
     public void modifyPassword(View view) {
         modifyPasswordDialog();
@@ -104,11 +105,12 @@ public class MainActivity extends BaseActivity {
 
     @ViewInject(R.id.btn_add_task)
     private ImageButton btnAddTask;
-    @Event(value = R.id.btn_add_task ,type = View.OnClickListener.class)
-    public void addTask(View view){
-        Toasty.info(MainActivity.this,"点击了添加",0).show();
-        Intent intent = new Intent(MainActivity.this,AddOrUpdateTaskActivity.class);
-        intent.putExtra("userId",userId);
+
+    @Event(value = R.id.btn_add_task, type = View.OnClickListener.class)
+    public void addTask(View view) {
+        Toasty.info(MainActivity.this, "点击了添加", 0).show();
+        Intent intent = new Intent(MainActivity.this, AddOrUpdateTaskActivity.class);
+        intent.putExtra("userId", userId);
         startActivity(intent);
     }
 
@@ -156,7 +158,7 @@ public class MainActivity extends BaseActivity {
                 taskList.get(position).put("tv_task_status", "完成");
                 simpleAdapter.notifyDataSetChanged();
             }
-            if (taskList.get(position).get("tv_task_status").equals("放弃")) {
+            if (taskList.get(position).get("tv_task_status").equals("已放弃")) {
                 Toasty.info(MainActivity.this, "该任务已放弃！", Toast.LENGTH_SHORT).show();
             }
         }
@@ -176,7 +178,9 @@ public class MainActivity extends BaseActivity {
         giveUpTaskDialog.setPositiveButton("确定", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                taskList.get(position).put("tv_task_status", "放弃");
+                taskList.get(position).put("tv_task_status", "已放弃");
+                String id = taskList.get(position).get("objId");
+                updateLocalDBOneData(id);
                 simpleAdapter.notifyDataSetChanged();
                 Toasty.info(MainActivity.this, "下次制定一个容易一些的任务吧~", Toast.LENGTH_SHORT).show();
             }
@@ -190,10 +194,31 @@ public class MainActivity extends BaseActivity {
         giveUpTaskDialog.show();
     }
 
+    /**
+     * 更新本地数据库内部某条数据
+     */
+    private void updateLocalDBOneData(String id) {
+        if (id == null || id.equals("")) {
+            return;
+        }
+        try {
+            //TODO bug
+            Task task = (Task) dbManager.selector(Task.class)
+                    .and("id", "=", Integer.parseInt(id))
+                    .findAll();
+            if (task != null) {
+                task.setStatus(-1);
+            }
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     private EditText etOldPassword;
     private EditText etNewPassword;
     private EditText etRePassword;
+
     /**
      * 修改密码的dialog
      */
@@ -212,7 +237,7 @@ public class MainActivity extends BaseActivity {
         giveUpTaskDialog.setPositiveButton("确定", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                modifyPassword(etOldPassword.getText().toString(),etNewPassword.getText().toString(),etRePassword.getText().toString());
+                modifyPassword(etOldPassword.getText().toString(), etNewPassword.getText().toString(), etRePassword.getText().toString());
             }
         });
         giveUpTaskDialog.setNegativeButton("取消", new DialogInterface.OnClickListener() {
@@ -228,15 +253,15 @@ public class MainActivity extends BaseActivity {
      * 修改密码逻辑
      * -1:旧密码错误
      * 0 :成功
-     * */
-    private void modifyPassword(String oldPassword,String newPassword,String rePassword){
-        if(!newPassword.equals(rePassword)){
-            Toasty.error(MainActivity.this,"两次输入的密码不匹配",Toast.LENGTH_SHORT).show();
-            return ;
+     */
+    private void modifyPassword(String oldPassword, String newPassword, String rePassword) {
+        if (!newPassword.equals(rePassword)) {
+            Toasty.error(MainActivity.this, "两次输入的密码不匹配", Toast.LENGTH_SHORT).show();
+            return;
         }
         RequestParams params = new MyParamsBuilder(MainActivity.this, "public/midifiy_password.html", true)
-                .addParameter("old_password",Toolkit._3DES_encode(Config.PASSWORD_KEY.getBytes(), oldPassword.getBytes()))
-                .addParameter("new_password",Toolkit._3DES_encode(Config.PASSWORD_KEY.getBytes(), newPassword.getBytes()))
+                .addParameter("old_password", Toolkit._3DES_encode(Config.PASSWORD_KEY.getBytes(), oldPassword.getBytes()))
+                .addParameter("new_password", Toolkit._3DES_encode(Config.PASSWORD_KEY.getBytes(), newPassword.getBytes()))
                 .builder();
         x.http().get(params, new Callback.CommonCallback<String>() {
             @Override
@@ -244,15 +269,15 @@ public class MainActivity extends BaseActivity {
                 JsonParser jsonParser = new JsonParser();
                 JsonObject jsonObject = (JsonObject) jsonParser.parse(s);
                 int res = jsonObject.get("code").getAsInt();
-                switch (res){
+                switch (res) {
                     case 0:
-                        Toasty.success(MainActivity.this,"修改成功",Toast.LENGTH_SHORT).show();
+                        Toasty.success(MainActivity.this, "修改成功", Toast.LENGTH_SHORT).show();
                         break;
                     case -5:
-                        Toasty.error(MainActivity.this,"旧密码输入错误",Toast.LENGTH_SHORT).show();
+                        Toasty.error(MainActivity.this, "旧密码输入错误", Toast.LENGTH_SHORT).show();
                         break;
                 }
-                return ;
+                return;
             }
 
             @Override
@@ -275,19 +300,19 @@ public class MainActivity extends BaseActivity {
 
     /**
      * 广播，当添加Task或编辑Task时刷新主界面
-     * */
+     */
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if(action.equals(ACTION_NAME)){
+            if (action.equals(ACTION_NAME)) {
                 //更新数据
                 try {
                     List<Task> list = dbManager.selector(Task.class)
                             .where("userId", "=", userId)
                             .findAll();
                     taskList.clear();
-                    for(Task task : list){
+                    for (Task task : list) {
                         Map<String, String> map = new HashMap<>();
                         map.put("objId", task.getId() + "");
                         map.put("userId", task.getUserId());
@@ -301,7 +326,7 @@ public class MainActivity extends BaseActivity {
                             map.put("tv_task_status", "未完成");
                         }
                         if (task.getStatus() == -1) {
-                            map.put("tv_task_status", "放弃");
+                            map.put("tv_task_status", "已放弃");
                         }
                         map.put("tv_task_name", task.getTaskName());
                         taskList.add(map);
@@ -313,10 +338,10 @@ public class MainActivity extends BaseActivity {
                     e.printStackTrace();
                 }
             } else {
-                Toasty.error(MainActivity.this,"添加错误",0).show();
+                Toasty.error(MainActivity.this, "添加错误", 0).show();
                 mPullToRefreshView.setRefreshing(false);
             }
-            if (action.equals(CLOSE_MAIN_ACTIVITY)){
+            if (action.equals(CLOSE_MAIN_ACTIVITY)) {
                 finish();
             }
         }
@@ -324,13 +349,13 @@ public class MainActivity extends BaseActivity {
 
     /**
      * 注册广播
-     * */
-    public void registerBroadcastReceiver(){
+     */
+    public void registerBroadcastReceiver() {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(ACTION_NAME);
         intentFilter.addAction(CLOSE_MAIN_ACTIVITY);
         //注册广播
-        registerReceiver(broadcastReceiver,intentFilter);
+        registerReceiver(broadcastReceiver, intentFilter);
     }
 
     @Override
@@ -343,8 +368,8 @@ public class MainActivity extends BaseActivity {
 
     /**
      * 初始化一些数据
-     * */
-    private void init(){
+     */
+    private void init() {
         registerBroadcastReceiver();
         initPullRefresh();
         initSlidingMenu();
@@ -461,7 +486,7 @@ public class MainActivity extends BaseActivity {
                         map.put("tv_task_status", "未完成");
                     }
                     if (task.getStatus() == -1) {
-                        map.put("tv_task_status", "放弃");
+                        map.put("tv_task_status", "已放弃");
                     }
                     map.put("tv_task_name", task.getTaskName());
                     this.taskList.add(map);
@@ -510,7 +535,7 @@ public class MainActivity extends BaseActivity {
                     map.put("tv_task_status", "未完成");
                 }
                 if (task.getStatus() == -1) {
-                    map.put("tv_task_status", "放弃");
+                    map.put("tv_task_status", "已放弃");
                 }
                 map.put("tv_task_name", task.getTaskName());
                 taskList.add(map);

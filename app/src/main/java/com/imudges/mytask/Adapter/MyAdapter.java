@@ -26,6 +26,7 @@ public class MyAdapter extends BaseAdapter implements Filterable{
     private LayoutInflater mInflater;
     MyFilter mFilter = null;
 
+
     public MyAdapter(Context context, List<Map<String, String>> mContentList, MyClickListener myClickListener) {
         this.mContentList = mContentList;
         this.myClickListener = myClickListener;
@@ -66,11 +67,25 @@ public class MyAdapter extends BaseAdapter implements Filterable{
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
-        //需要修改图片等级
+        //TODO 需要修改图片等级
         holder.imgTaskType.setImageResource(R.mipmap.level);
         holder.tvTaskName.setText(mContentList.get(position).get("tv_task_name"));
         holder.tvAddTime.setText(mContentList.get(position).get("tv_add_time"));
         holder.tvTaskStatus.setText(mContentList.get(position).get("tv_task_status"));
+        switch (mContentList.get(position).get("tv_task_status")){
+            case "完成":
+                holder.tvTaskStatus.setTextColor(holder.tvTaskStatus.getResources().getColor(R.color.forestgreen));
+                break;
+            case "未完成":
+                holder.tvTaskStatus.setTextColor(holder.tvTaskStatus.getResources().getColor(R.color.black));
+                break;
+            case "已放弃":
+                holder.tvTaskStatus.setTextColor(holder.tvTaskStatus.getResources().getColor(R.color.red));
+                break;
+            default:
+                holder.tvTaskStatus.setTextColor(holder.tvTaskStatus.getResources().getColor(R.color.black));
+                break;
+        }
         holder.tvSummary.setText(mContentList.get(position).get("tv_summary"));
 
 
