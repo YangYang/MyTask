@@ -67,6 +67,9 @@ public class MyAdapter extends BaseAdapter implements Filterable{
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
+        holder.imgBtnTaskStatus = (ImageButton) convertView.findViewById(R.id.btn_task_status);
+
+
         //TODO 需要修改图片等级
         holder.imgTaskType.setImageResource(R.mipmap.level);
         holder.tvTaskName.setText(mContentList.get(position).get("tv_task_name"));
@@ -80,6 +83,7 @@ public class MyAdapter extends BaseAdapter implements Filterable{
                 holder.tvTaskStatus.setTextColor(holder.tvTaskStatus.getResources().getColor(R.color.black));
                 break;
             case "已放弃":
+                holder.imgBtnTaskStatus.setImageResource(R.drawable.select);
                 holder.tvTaskStatus.setTextColor(holder.tvTaskStatus.getResources().getColor(R.color.red));
                 break;
             default:
@@ -106,7 +110,7 @@ public class MyAdapter extends BaseAdapter implements Filterable{
             }
         });
 
-        holder.imgBtnTaskStatus = (ImageButton) convertView.findViewById(R.id.btn_task_status);
+
         if(holder.tvTaskStatus.getText().toString().equals("完成")){
             holder.imgBtnTaskStatus.setImageResource(R.drawable.selected);
         } else if( holder.tvTaskStatus.getText().toString().equals("放弃") ||  holder.tvTaskStatus.getText().toString().equals("未完成")){

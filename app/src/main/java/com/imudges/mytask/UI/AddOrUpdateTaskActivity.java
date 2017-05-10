@@ -79,10 +79,20 @@ public class AddOrUpdateTaskActivity extends BaseActivity {
     private void initViews() {
         if (objId == null) {
 
+
         } else {
+            //更新
             tvTitle.setText("更新数据");
             BtnSave.setText("更新");
 
+            try {
+                Task task = dbManager.selector(Task.class)
+                        .where("id","=",objId)
+                        .findFirst();
+
+            } catch (DbException e) {
+                e.printStackTrace();
+            }
 
         }
     }

@@ -35,6 +35,7 @@ import java.util.Map;
 import static org.nutz.log.Logs.init;
 
 //TODO 注销和添加的时候需要强制更新数据库内部数据
+//TODO 抽取同步数据的方法
 
 @ContentView(R.layout.activity_main)
 public class MainActivity extends BaseActivity {
@@ -132,7 +133,12 @@ public class MainActivity extends BaseActivity {
 
         @Override
         public void edit(int position, View v) {
+            //TODO 编辑一条未完成的 Task
             Toasty.info(MainActivity.this, "点击了" + position + "位置的编辑", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(MainActivity.this, AddOrUpdateTaskActivity.class);
+            intent.putExtra("userId", userId);
+            intent.putExtra("objId",taskList.get(position).get("objId"));
+            startActivity(intent);
         }
 
         @Override
@@ -141,13 +147,11 @@ public class MainActivity extends BaseActivity {
                 Toasty.info(MainActivity.this, "该任务已完成，不可放弃", Toast.LENGTH_SHORT).show();
                 return;
             }
-            if (taskList.get(position).get("tv_task_status").equals("放弃")) {
+            if (taskList.get(position).get("tv_task_status").equals("已放弃")) {
                 Toasty.info(MainActivity.this, "该任务已放弃，不可重复放弃", Toast.LENGTH_SHORT).show();
                 return;
             }
             giveUpTaskDialog(position, v);
-//            dbManager.saveOrUpdate();
-            //Toasty.info(MainActivity.this, "点击了" + position +"位置的放弃", Toast.LENGTH_SHORT).show();
         }
 
         @Override
@@ -204,7 +208,6 @@ public class MainActivity extends BaseActivity {
             return;
         }
         try {
-            //TODO bug
             Task task = dbManager.selector(Task.class)
                     .where("id", "=", Integer.parseInt(id))
                     .findFirst();
