@@ -119,7 +119,7 @@ public class AddOrUpdateTaskActivity extends BaseActivity {
             task.setType(Integer.parseInt(taskType));
             task.setTaskWebId(null);
             try {
-                dbManager.save(task);
+                dbManager.saveBindingId(task);
                 Toasty.success(AddOrUpdateTaskActivity.this, "添加成功", 0).show();
                 Intent intent = new Intent(ACTION_NAME);//此处放入的在广播处使用getAction()接收
                 //发送广播

@@ -3,6 +3,7 @@ package com.imudges.mytask.UI;
 import android.app.AlertDialog;
 import android.content.*;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -178,6 +179,7 @@ public class MainActivity extends BaseActivity {
         giveUpTaskDialog.setPositiveButton("确定", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                Log.v("text",taskList.get(position) + "");
                 taskList.get(position).put("tv_task_status", "已放弃");
                 String id = taskList.get(position).get("objId");
                 updateLocalDBOneData(id);
@@ -203,11 +205,13 @@ public class MainActivity extends BaseActivity {
         }
         try {
             //TODO bug
-            Task task = (Task) dbManager.selector(Task.class)
-                    .and("id", "=", Integer.parseInt(id))
-                    .findAll();
+            Task task = dbManager.selector(Task.class)
+                    .where("id", "=", Integer.parseInt(id))
+                    .findFirst();
             if (task != null) {
                 task.setStatus(-1);
+                task.setSyncStatus("1");
+                dbManager.saveOrUpdate(task);
             }
         } catch (DbException e) {
             e.printStackTrace();
@@ -512,6 +516,10 @@ public class MainActivity extends BaseActivity {
         if (code == 0) {
             //存入数据库的数据集
             List<Task> taskDataSet = new ArrayList<Task>();
+
+            /**
+             * 先存数据库，再添加到adapter里
+             * */
             //向adapter中添加数据集
             JsonArray jsonArray = jsonObject.get("data").getAsJsonObject().get("tasks").getAsJsonArray();
             taskList = new ArrayList<>();
@@ -522,6 +530,12 @@ public class MainActivity extends BaseActivity {
                         .create()
                         .fromJson(t, Task.class);
                 taskDataSet.add(task);
+            }
+
+            //清空数据库并插入请求得到的数据
+            MyDbManager.cleanLocalDataAndInsert(Task.class, taskDataSet);
+
+            for(Task task : taskDataSet){
                 Map<String, String> map = new HashMap<>();
                 map.put("objId", task.getId() + "");
                 map.put("userId", task.getUserId());
@@ -540,9 +554,6 @@ public class MainActivity extends BaseActivity {
                 map.put("tv_task_name", task.getTaskName());
                 taskList.add(map);
             }
-
-            //清空数据库并插入请求得到的数据
-            MyDbManager.cleanLocalDataAndInsert(Task.class, taskDataSet);
 
             simpleAdapter = new MyAdapter(MainActivity.this, taskList, myClickListener);
             listView.setAdapter(simpleAdapter);
