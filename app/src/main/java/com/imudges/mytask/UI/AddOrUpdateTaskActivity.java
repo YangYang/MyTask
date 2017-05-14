@@ -3,10 +3,12 @@ package com.imudges.mytask.UI;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.*;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
 import com.imudges.mytask.Bean.Task;
 import com.imudges.mytask.R;
-
 import com.imudges.mytask.Util.MyDbManager;
 import com.jaredrummler.materialspinner.MaterialSpinner;
 import es.dmoral.toasty.Toasty;
@@ -28,6 +30,7 @@ public class AddOrUpdateTaskActivity extends BaseActivity {
     private final String ACTION_NAME = "REFRESH_LIST";
     private String objId;
     private boolean isUpdate = false;//默认为添加
+    private Task task = null;
 
     @ViewInject(R.id.tv_title)
     private TextView tvTitle;
@@ -50,7 +53,11 @@ public class AddOrUpdateTaskActivity extends BaseActivity {
 
     private void initEvents() {
         materialSpinner.setItems(taskLevel);
-        taskType = "0";
+        if(objId !=null){
+            materialSpinner.setSelectedIndex(Integer.parseInt(taskType));
+        } else {
+            taskType = "0";
+        }
         materialSpinner.setOnItemSelectedListener(new MaterialSpinner.OnItemSelectedListener() {
             @Override
             public void onItemSelected(MaterialSpinner view, int position, long id, Object item) {
@@ -84,16 +91,20 @@ public class AddOrUpdateTaskActivity extends BaseActivity {
             //更新
             tvTitle.setText("更新数据");
             BtnSave.setText("更新");
-
             try {
-                Task task = dbManager.selector(Task.class)
+                task = dbManager.selector(Task.class)
                         .where("id","=",objId)
                         .findFirst();
-
+                if(task != null){
+                    etTaskTitle.setText(task.getTaskName());
+                    etTaskSummary.setText(task.getSummary());
+                    taskType = task.getType() + "";
+                } else {
+                    Toasty.info(AddOrUpdateTaskActivity.this,"本地数据库加载失败，请登录后重新选择Task进行编辑",0).show();
+                }
             } catch (DbException e) {
                 e.printStackTrace();
             }
-
         }
     }
 
@@ -110,6 +121,8 @@ public class AddOrUpdateTaskActivity extends BaseActivity {
     public void save(View view) {
         if (objId != null) {
             //更新
+            isUpdate = true;
+            addOrUpdateTask();
         } else {
             //添加
             addOrUpdateTask();
@@ -143,7 +156,22 @@ public class AddOrUpdateTaskActivity extends BaseActivity {
             }
         } else {
             //更新
-
+            task.setTaskName(etTaskTitle.getText().toString());
+            task.setSummary(etTaskSummary.getText().toString());
+            task.setType(Integer.parseInt(taskType));
+            task.setSyncStatus("1");
+            try {
+                dbManager.saveOrUpdate(task);
+                Toasty.success(AddOrUpdateTaskActivity.this,"更新成功",0).show();
+                Intent intent = new Intent(ACTION_NAME);//此处放入的在广播处使用getAction()接收
+                //发送广播
+                sendBroadcast(intent);
+                finish();
+                return;
+            } catch (DbException e) {
+                e.printStackTrace();
+                return ;
+            }
         }
     }
 
