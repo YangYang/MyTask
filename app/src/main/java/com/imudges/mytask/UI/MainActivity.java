@@ -14,6 +14,7 @@ import com.imudges.mytask.Bean.Task;
 import com.imudges.mytask.Bean.User;
 import com.imudges.mytask.Listener.MyClickListener;
 import com.imudges.mytask.R;
+import com.imudges.mytask.Service.UserService;
 import com.imudges.mytask.Util.*;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 import com.yalantis.phoenix.PullToRefreshView;
@@ -49,6 +50,7 @@ public class MainActivity extends BaseActivity {
     private SlidingMenu slidingMenu;
     private final String ACTION_NAME = "REFRESH_LIST";
     private final String CLOSE_MAIN_ACTIVITY = "CLOSE_MAIN_ACTIVITY";
+    private UserService userService = new UserService();
 
     //下拉刷新延迟时间
     private static long REFRESH_DELAY = 1000;
@@ -93,6 +95,13 @@ public class MainActivity extends BaseActivity {
     public void logout(View view) {
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);
+        List<Task> list = null;
+        try {
+            list = dbManager.findAll(Task.class);
+            userService.syncData(MainActivity.this,list);
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
         finish();
     }
 
@@ -135,10 +144,16 @@ public class MainActivity extends BaseActivity {
         public void edit(int position, View v) {
             //TODO 编辑一条未完成的 Task
             Toasty.info(MainActivity.this, "点击了" + position + "位置的编辑", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(MainActivity.this, AddOrUpdateTaskActivity.class);
-            intent.putExtra("userId", userId);
-            intent.putExtra("objId",taskList.get(position).get("objId"));
-            startActivity(intent);
+            if(taskList.get(position).get("tv_task_status").equals("完成")){
+                Toasty.info(MainActivity.this,"此任务已完成，不能编辑了哟~",Toast.LENGTH_SHORT).show();
+            } else if(taskList.get(position).get("tv_task_status").equals("已放弃")) {
+                Toasty.info(MainActivity.this,"此任务已放弃，不能编辑了哟~",Toast.LENGTH_SHORT).show();
+            } else {
+                Intent intent = new Intent(MainActivity.this, AddOrUpdateTaskActivity.class);
+                intent.putExtra("userId", userId);
+                intent.putExtra("objId",taskList.get(position).get("objId"));
+                startActivity(intent);
+            }
         }
 
         @Override
@@ -161,7 +176,19 @@ public class MainActivity extends BaseActivity {
             }
             if (taskList.get(position).get("tv_task_status").equals("未完成")) {
                 taskList.get(position).put("tv_task_status", "完成");
-                simpleAdapter.notifyDataSetChanged();
+                //更新数据库
+                try {
+                    Task task = dbManager.findById(Task.class,taskList.get(position).get("objId"));
+                    task.setStatus(0);
+                    task.setSyncStatus("1");
+                    dbManager.saveOrUpdate(task);
+                } catch (DbException e) {
+                    e.printStackTrace();
+                }
+                Toasty.success(MainActivity.this,"更新成功",0).show();
+                Intent intent = new Intent(ACTION_NAME);//此处放入的在广播处使用getAction()接收
+                //发送广播
+                sendBroadcast(intent);
             }
             if (taskList.get(position).get("tv_task_status").equals("已放弃")) {
                 Toasty.info(MainActivity.this, "该任务已放弃！", Toast.LENGTH_SHORT).show();
@@ -327,6 +354,7 @@ public class MainActivity extends BaseActivity {
                         map.put("tv_add_time", task.getAddTime() + "");
                         map.put("tv_summary", task.getSummary());
                         if (task.getStatus() == 0) {
+                            map.put("tv_task_status", "完成");
                             map.put("tv_task_status", "完成");
                         }
                         if (task.getStatus() == 1) {

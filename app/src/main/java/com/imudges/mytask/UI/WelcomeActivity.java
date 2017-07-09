@@ -13,6 +13,7 @@ import com.imudges.mytask.R;
  * 欢迎界面，停留三秒
  * 参考实现：http://blog.csdn.net/huplion/article/details52612098
  * */
+//TODO 同步工作放到这里来做
 public class WelcomeActivity extends Activity{
 
     @Override

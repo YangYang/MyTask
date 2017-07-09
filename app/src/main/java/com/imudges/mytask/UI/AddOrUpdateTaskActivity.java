@@ -2,6 +2,7 @@ package com.imudges.mytask.UI;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -39,6 +40,16 @@ public class AddOrUpdateTaskActivity extends BaseActivity {
     @ViewInject(R.id.spinner)
     private MaterialSpinner materialSpinner;
     private String[] taskLevel = {"紧急而且重要", "紧急但不是很重要", "不怎么紧急但是很重要", "不紧急而且不重要"};
+
+    @ViewInject(R.id.btn_back_to_home)
+    private Button btnBackToHome;
+
+    @Event(value = R.id.btn_back_to_home,type = View.OnClickListener.class)
+    private void onClickBackToHome(View view){
+        Intent intent = new Intent(AddOrUpdateTaskActivity.this,MainActivity.class);
+        startActivity(intent);
+        finish();
+    }
 
     //数据库对象的初始化
     private DbManager dbManager;
@@ -129,30 +140,42 @@ public class AddOrUpdateTaskActivity extends BaseActivity {
         }
     }
 
+    private boolean judgeLegality(){
+        if(!TextUtils.isEmpty(etTaskSummary.getText()) && !TextUtils.isEmpty(etTaskTitle.getText())){
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     private void addOrUpdateTask() {
         if (!isUpdate) {
             //添加
-            Task task = new Task();
-            task.setAddTime(new Date(System.currentTimeMillis()));
-            task.setSummary(etTaskSummary.getText().toString());
-            task.setSyncStatus("null");
-            task.setTaskName(etTaskTitle.getText().toString());
-            task.setUserId(userId);
-            task.setStatus(1);
-            task.setType(Integer.parseInt(taskType));
-            task.setTaskWebId(null);
-            try {
-                dbManager.saveBindingId(task);
-                Toasty.success(AddOrUpdateTaskActivity.this, "添加成功", 0).show();
-                Intent intent = new Intent(ACTION_NAME);//此处放入的在广播处使用getAction()接收
-                //发送广播
-                sendBroadcast(intent);
-                finish();
-                return;
-            } catch (DbException e) {
-                e.printStackTrace();
-                Toasty.error(AddOrUpdateTaskActivity.this, "添加发生错误", 0).show();
-                return;
+            if(judgeLegality()){
+                Task task = new Task();
+                task.setAddTime(new Date(System.currentTimeMillis()));
+                task.setSummary(etTaskSummary.getText().toString());
+                task.setSyncStatus("null");
+                task.setTaskName(etTaskTitle.getText().toString());
+                task.setUserId(userId);
+                task.setStatus(1);
+                task.setType(Integer.parseInt(taskType));
+                task.setTaskWebId(null);
+                try {
+                    dbManager.saveBindingId(task);
+                    Toasty.success(AddOrUpdateTaskActivity.this, "添加成功", 0).show();
+                    Intent intent = new Intent(ACTION_NAME);//此处放入的在广播处使用getAction()接收
+                    //发送广播
+                    sendBroadcast(intent);
+                    finish();
+                    return;
+                } catch (DbException e) {
+                    e.printStackTrace();
+                    Toasty.error(AddOrUpdateTaskActivity.this, "添加发生错误", 0).show();
+                    return;
+                }
+            } else {
+                Toasty.warning(AddOrUpdateTaskActivity.this,"请完整填写任务信息后添加！",0).show();
             }
         } else {
             //更新

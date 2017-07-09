@@ -52,5 +52,6 @@
             android:textColor="#ffffff"
             android:textSize="17dp"
             android:onClick="login"
+            android:background="@drawable/shape"
     />
 </LinearLayout>
