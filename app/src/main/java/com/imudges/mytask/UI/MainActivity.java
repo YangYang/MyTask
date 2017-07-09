@@ -422,6 +422,12 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void run() {
                         mPullToRefreshView.setRefreshing(false);
+                        try {
+                            List<Task> list = dbManager.findAll(Task.class);
+                            userService.syncData(MainActivity.this,list);
+                        } catch (DbException e) {
+                            e.printStackTrace();
+                        }
                         initData();
                     }
                 }, REFRESH_DELAY);
