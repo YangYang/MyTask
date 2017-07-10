@@ -3,6 +3,7 @@ package com.imudges.mytask.UI;
 import android.app.AlertDialog;
 import android.content.*;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -33,11 +34,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.nutz.log.Logs.init;
-
-//TODO 注销和添加的时候需要强制更新数据库内部数据
-//TODO 抽取同步数据的方法
-
 @ContentView(R.layout.activity_main)
 public class MainActivity extends BaseActivity {
 
@@ -57,6 +53,9 @@ public class MainActivity extends BaseActivity {
     @ViewInject(R.id.pull_to_refresh)
     private PullToRefreshView mPullToRefreshView;
 
+    @ViewInject(R.id.sv_search)
+    private SearchView searchView;
+
     //TODO about
     @ViewInject(R.id.btn_about)
     private Button menuBtnAbout;
@@ -75,9 +74,6 @@ public class MainActivity extends BaseActivity {
         startActivity(intent);
         finish();
     }
-
-//    @ViewInject(R.id.btn_delete)
-//    private Button btnDelete;
 
     @ViewInject(R.id.btn_exit)
     private Button menuBtnExit;
@@ -121,7 +117,7 @@ public class MainActivity extends BaseActivity {
 
     @Event(value = R.id.btn_add_task, type = View.OnClickListener.class)
     public void addTask(View view) {
-        Toasty.info(MainActivity.this, "点击了添加", 0).show();
+//        Toasty.info(MainActivity.this, "点击了添加", 0).show();
         Intent intent = new Intent(MainActivity.this, AddOrUpdateTaskActivity.class);
         intent.putExtra("userId", userId);
         startActivity(intent);
@@ -145,7 +141,7 @@ public class MainActivity extends BaseActivity {
         @Override
         public void edit(int position, View v) {
             //TODO 编辑一条未完成的 Task
-            Toasty.info(MainActivity.this, "点击了" + position + "位置的编辑", Toast.LENGTH_SHORT).show();
+//            Toasty.info(MainActivity.this, "点击了" + position + "位置的编辑", Toast.LENGTH_SHORT).show();
             if(taskList.get(position).get("tv_task_status").equals("完成")){
                 Toasty.info(MainActivity.this,"此任务已完成，不能编辑了哟~",Toast.LENGTH_SHORT).show();
             } else if(taskList.get(position).get("tv_task_status").equals("已放弃")) {
@@ -213,10 +209,6 @@ public class MainActivity extends BaseActivity {
             sendBroadcast(intent);
         }
     };
-
-    /**
-     * 删除任务的
-     * */
 
     /**
      * 放弃任务的dialog
@@ -418,8 +410,6 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        initDb();
-        initData();
         init();
     }
 
@@ -427,13 +417,39 @@ public class MainActivity extends BaseActivity {
      * 初始化一些数据
      */
     private void init() {
+        initDb();
+        initData();
         registerBroadcastReceiver();
         initPullRefresh();
         initSlidingMenu();
+        initSearch();
     }
 
     /**
-     * 下拉刷新
+     * 初始化搜索
+     * */
+    private void initSearch(){
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                return false;
+            }
+
+            //当搜索内容改变，触发该方法
+            @Override
+            public boolean onQueryTextChange(String s) {
+                if(!TextUtils.isEmpty(s)){
+                    listView.setFilterText(s);
+                } else {
+                    listView.clearTextFilter();
+                }
+                return false;
+            }
+        });
+    }
+
+    /**
+     * 初始化下拉刷新
      */
     private void initPullRefresh() {
         mPullToRefreshView = (PullToRefreshView) findViewById(R.id.pull_to_refresh);
@@ -585,8 +601,9 @@ public class MainActivity extends BaseActivity {
             taskList = new ArrayList<>();
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonObject t = jsonArray.get(i).getAsJsonObject();
+                //TODO 格式化时间
                 Task task = new GsonBuilder()
-                        .setDateFormat("yyyy-MM-dd HH:mm:ss")
+                        .setDateFormat("yyyy-M-d H:mm:ss")
                         .create()
                         .fromJson(t, Task.class);
                 taskDataSet.add(task);
