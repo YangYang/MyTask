@@ -76,6 +76,8 @@ public class MainActivity extends BaseActivity {
         finish();
     }
 
+//    @ViewInject(R.id.btn_delete)
+//    private Button btnDelete;
 
     @ViewInject(R.id.btn_exit)
     private Button menuBtnExit;
@@ -194,7 +196,27 @@ public class MainActivity extends BaseActivity {
                 Toasty.info(MainActivity.this, "该任务已放弃！", Toast.LENGTH_SHORT).show();
             }
         }
+
+        @Override
+        public void delete(int position, View v) {
+            try {
+                Task task = dbManager.findById(Task.class,taskList.get(position).get("objId"));
+                task.setStatus(-2);
+                task.setSyncStatus("1");
+                dbManager.saveOrUpdate(task);
+            } catch (DbException e) {
+                e.printStackTrace();
+            }
+            Toasty.success(MainActivity.this,"删除成功",0).show();
+            Intent intent = new Intent(ACTION_NAME);//此处放入的在广播处使用getAction()接收
+            //发送广播
+            sendBroadcast(intent);
+        }
     };
+
+    /**
+     * 删除任务的
+     * */
 
     /**
      * 放弃任务的dialog
@@ -356,12 +378,12 @@ public class MainActivity extends BaseActivity {
                         if (task.getStatus() == 0) {
                             map.put("tv_task_status", "完成");
                             map.put("tv_task_status", "完成");
-                        }
-                        if (task.getStatus() == 1) {
+                        } else if (task.getStatus() == 1) {
                             map.put("tv_task_status", "未完成");
-                        }
-                        if (task.getStatus() == -1) {
+                        } else if (task.getStatus() == -1) {
                             map.put("tv_task_status", "已放弃");
+                        } else if(task.getStatus() == -2){
+                            continue ;
                         }
                         map.put("tv_task_name", task.getTaskName());
                         taskList.add(map);
@@ -522,12 +544,13 @@ public class MainActivity extends BaseActivity {
                     map.put("tv_summary", task.getSummary());
                     if (task.getStatus() == 0) {
                         map.put("tv_task_status", "完成");
-                    }
-                    if (task.getStatus() == 1) {
+                        map.put("tv_task_status", "完成");
+                    } else if (task.getStatus() == 1) {
                         map.put("tv_task_status", "未完成");
-                    }
-                    if (task.getStatus() == -1) {
+                    } else if (task.getStatus() == -1) {
                         map.put("tv_task_status", "已放弃");
+                    } else if(task.getStatus() == -2){
+                        continue ;
                     }
                     map.put("tv_task_name", task.getTaskName());
                     this.taskList.add(map);
@@ -581,12 +604,13 @@ public class MainActivity extends BaseActivity {
                 map.put("tv_summary", task.getSummary());
                 if (task.getStatus() == 0) {
                     map.put("tv_task_status", "完成");
-                }
-                if (task.getStatus() == 1) {
+                    map.put("tv_task_status", "完成");
+                } else if (task.getStatus() == 1) {
                     map.put("tv_task_status", "未完成");
-                }
-                if (task.getStatus() == -1) {
+                } else if (task.getStatus() == -1) {
                     map.put("tv_task_status", "已放弃");
+                } else if(task.getStatus() == -2){
+                    continue ;
                 }
                 map.put("tv_task_name", task.getTaskName());
                 taskList.add(map);

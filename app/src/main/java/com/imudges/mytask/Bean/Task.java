@@ -33,6 +33,7 @@ public class Task {
      * 1：未完成
      * 0：完成
      * -1:放弃
+     * -2:已删除
      * */
     @Column(name="status")
     private int status;

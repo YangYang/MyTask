@@ -110,6 +110,14 @@ public class MyAdapter extends BaseAdapter implements Filterable{
             }
         });
 
+        holder.btnDelete = (Button) convertView.findViewById(R.id.btn_delete);
+        holder.btnDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                myClickListener.delete(position,v);
+            }
+        });
+
 
         if(holder.tvTaskStatus.getText().toString().equals("完成")){
             holder.imgBtnTaskStatus.setImageResource(R.drawable.selected);
@@ -145,6 +153,7 @@ public class MyAdapter extends BaseAdapter implements Filterable{
         public TextView tvSummary;//任务描述
         public Button btnEdit;//编辑
         public Button btnAbandon;//放弃
+        public Button btnDelete;//删除
     }
 
     //搜索用
