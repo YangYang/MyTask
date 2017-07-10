@@ -11,7 +11,10 @@ import com.imudges.mytask.R;
 import es.dmoral.toasty.Toasty;
 import org.w3c.dom.Text;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -68,7 +71,6 @@ public class MyAdapter extends BaseAdapter implements Filterable{
             holder = (ViewHolder) convertView.getTag();
         }
         holder.imgBtnTaskStatus = (ImageButton) convertView.findViewById(R.id.btn_task_status);
-
 
         //TODO 需要修改图片等级
         holder.imgTaskType.setImageResource(R.mipmap.level);

@@ -17,6 +17,7 @@ import org.xutils.common.Callback;
 import org.xutils.http.RequestParams;
 import org.xutils.x;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,7 +55,6 @@ public class UserService extends Thread{
                             //Nutz Json解析
                             if (jsonData != null && !jsonData.equals("")) {
                                 taskDataSet = Json.fromJsonAsList(Task.class, jsonData);
-
                                 //清空数据库并插入数据
                                 MyDbManager.cleanLocalDataAndInsert(Task.class, taskDataSet);
                                 Toasty.success(context, "本地数据同步成功", Toast.LENGTH_SHORT).show();
